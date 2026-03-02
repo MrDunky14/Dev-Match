@@ -1,6 +1,6 @@
 """Seed the database with sample students and projects."""
 from database import engine, SessionLocal, Base
-from models import User, UserSkill, Project
+from models import User, UserSkill, Project, Message
 from datetime import datetime, timezone
 
 Base.metadata.create_all(bind=engine)
@@ -150,7 +150,8 @@ SAMPLE_PROJECTS = [
 def seed():
     db = SessionLocal()
     try:
-        # Clear existing data
+        # Clear existing data (order matters for FK constraints on PostgreSQL)
+        db.query(Message).delete()
         db.query(UserSkill).delete()
         db.query(Project).delete()
         db.query(User).delete()
