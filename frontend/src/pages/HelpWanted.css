@@ -1,0 +1,23 @@
+/* ── Help Wanted ──────────────────────────────────────── */
+.hw-filters {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.hw-filters .form-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.hw-filters .form-select {
+    min-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .hw-filters {
+        flex-direction: column;
+    }
+}

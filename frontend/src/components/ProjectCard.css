@@ -1,0 +1,117 @@
+/* ── Project Card ──────────────────────────────────────── */
+.project-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.project-card-top {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.project-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+}
+
+.project-status.open {
+    background: rgba(6, 214, 160, 0.12);
+    color: var(--accent-cyan);
+}
+
+.project-status.closed {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.project-title {
+    font-size: 1.2rem;
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+}
+
+.project-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.project-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.project-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.project-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+}
+
+.project-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.project-owner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-owner-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+}
+
+.project-owner-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.project-interest-btn {
+    padding: 8px 18px;
+    font-size: 0.8rem;
+}
