@@ -12,6 +12,19 @@ import crud
 # Create tables
 Base.metadata.create_all(bind=engine)
 
+# Auto-seed if database is empty (needed for Render free tier — no shell access)
+def auto_seed():
+    from seed import seed
+    db = next(get_db())
+    try:
+        if db.query(User).count() == 0:
+            print("⚡ Database empty — auto-seeding...")
+            seed()
+    finally:
+        db.close()
+
+auto_seed()
+
 app = FastAPI(title="Dev-Match API", version="1.0.0")
 
 # CORS
