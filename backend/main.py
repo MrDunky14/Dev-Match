@@ -15,15 +15,18 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Dev-Match API", version="1.0.0")
 
 # CORS
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+origins = [
+    "https://dev-match-tau.vercel.app",
+    "http://localhost:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ── Users ─────────────────────────────────────────────────
 
