@@ -40,6 +40,7 @@
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -114,4 +115,56 @@
 .project-interest-btn {
     padding: 8px 18px;
     font-size: 0.8rem;
+}
+
+/* New Apply Features */
+.app-count-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-hover);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+}
+
+.project-match {
+    font-size: 0.82rem;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    display: inline-flex;
+    width: fit-content;
+}
+
+.applied-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10b981;
+    padding: 6px 14px;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: var(--radius-full);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.owner-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border: 1px dashed var(--border-subtle);
+    border-radius: var(--radius-full);
+}
+
+.apply-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.apply-form .btn {
+    align-self: flex-end;
 }

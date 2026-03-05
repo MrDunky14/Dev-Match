@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getStats, getUsers } from '../api';
 import ProfileCard from '../components/ProfileCard';
+import DevlogFeed from '../components/DevlogFeed';
 import './Home.css';
 
 export default function Home() {
@@ -19,14 +20,14 @@ export default function Home() {
             <section className="hero">
                 <div className="container hero-inner">
                     <div className="hero-content slide-up">
-                        <span className="hero-badge">⚡ The Campus Team Finder</span>
+                        <span className="hero-badge">⚡ SLRTCE Team Finder</span>
                         <h1 className="hero-title">
                             Find Your Perfect
                             <span className="hero-highlight"> Dev Partner</span>
                         </h1>
                         <p className="hero-subtitle">
                             No great project should die because you couldn't find a teammate.
-                            Discover developers by skill, semester, and department — all within your campus.
+                            Discover developers by skill, semester, and department — all within SLRTCE.
                         </p>
                         <div className="hero-actions">
                             <Link to="/discover" className="btn btn-primary btn-lg">
@@ -62,46 +63,52 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Stats */}
-            <section className="stats-section fade-in">
-                <div className="container">
-                    <div className="stats-grid">
-                        <div className="stat-card glass-card">
-                            <span className="stat-number">{stats.total_developers}</span>
-                            <span className="stat-label">Developers</span>
+            {/* Main Content Layout */}
+            <section className="main-content-section" style={{ padding: '0 0 80px', marginTop: '-20px' }}>
+                <div className="container" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '40px' }}>
+
+                    {/* Left Column: Live Feed */}
+                    <div className="feed-column">
+                        <DevlogFeed />
+                    </div>
+
+                    {/* Right Column: Stats & Featured */}
+                    <div className="sidebar-column" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+                        {/* Stats */}
+                        <div className="stats-sidebar glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Platform Stats 🚀</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Developers</span>
+                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_developers}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Projects</span>
+                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_projects}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Skills</span>
+                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_skills}</span>
+                            </div>
                         </div>
-                        <div className="stat-card glass-card">
-                            <span className="stat-number">{stats.total_projects}</span>
-                            <span className="stat-label">Projects</span>
-                        </div>
-                        <div className="stat-card glass-card">
-                            <span className="stat-number">{stats.total_skills}</span>
-                            <span className="stat-label">Skills</span>
-                        </div>
-                        <div className="stat-card glass-card">
-                            <span className="stat-number">{stats.open_projects}</span>
-                            <span className="stat-label">Open Projects</span>
-                        </div>
+
+                        {/* Featured Devs */}
+                        {featured.length > 0 && (
+                            <div className="featured-sidebar">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                    <h3 style={{ fontSize: '1.2rem' }}>Featured ✨</h3>
+                                    <Link to="/discover" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: '0.8rem' }}>View all</Link>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    {featured.map((user) => (
+                                        <ProfileCard key={user.id} user={user} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
-
-            {/* Featured Devs */}
-            {featured.length > 0 && (
-                <section className="featured-section">
-                    <div className="container">
-                        <div className="section-header">
-                            <h2>Featured Developers ✨</h2>
-                            <Link to="/discover" className="btn btn-ghost">View all →</Link>
-                        </div>
-                        <div className="card-grid stagger-children">
-                            {featured.map((user) => (
-                                <ProfileCard key={user.id} user={user} />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
 
             {/* How it works */}
             <section className="how-section">

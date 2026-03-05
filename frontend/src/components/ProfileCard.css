@@ -62,6 +62,34 @@
     font-weight: 500;
 }
 
+.card-availability {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    width: fit-content;
+}
+
+.avail-green {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.avail-blue {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.avail-yellow {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.avail-red {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .profile-bio {
     font-size: 0.88rem;
     color: var(--text-secondary);

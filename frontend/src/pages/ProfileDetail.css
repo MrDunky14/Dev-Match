@@ -59,8 +59,36 @@
     font-weight: 600;
 }
 
+.availability-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border: 1px solid;
+    border-radius: var(--radius-full);
+    width: fit-content;
+    margin-top: 4px;
+}
+
+.skill-match-banner {
+    padding: 12px 16px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-md);
+    color: #10b981;
+    font-size: 0.88rem;
+}
+
+.text-link {
+    color: var(--accent-purple-light);
+    text-decoration: underline;
+}
+
 .profile-bio-section h3,
-.profile-skills-section h3 {
+.profile-skills-section h3,
+.github-repos-section h3 {
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -80,8 +108,96 @@
     gap: 8px;
 }
 
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn-whatsapp {
+    background: #25d366;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-whatsapp:hover {
+    background: #1ebe5d;
+    transform: translateY(-1px);
+}
+
 .github-link {
     align-self: flex-start;
+}
+
+/* GitHub Repos */
+.github-repos-section {
+    padding-top: 8px;
+}
+
+.repos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.repo-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-fast);
+}
+
+.repo-card:hover {
+    border-color: var(--accent-purple);
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.repo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.repo-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--accent-cyan);
+}
+
+.repo-stars {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.repo-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.repo-lang {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.text-muted {
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 
 .profile-meta {

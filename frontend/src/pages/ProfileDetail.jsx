@@ -1,47 +1,68 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { getUser, getUsers, sendMessage, getConversation } from '../api';
+import { useParams, Link } from 'react-router-dom';
+import { getUser, sendMessage, getConversation, fetchGitHubProfile } from '../api';
+import { useIdentity } from '../hooks/useIdentity';
 import SkillTag from '../components/SkillTag';
 import './ProfileDetail.css';
 
+const AVAILABILITY_MAP = {
+    'Looking for team': { emoji: '🟢', color: '#10b981' },
+    'Open to collaborate': { emoji: '🔵', color: '#3b82f6' },
+    'Busy with project': { emoji: '🟡', color: '#f59e0b' },
+    'Not available': { emoji: '🔴', color: '#ef4444' },
+};
+
 export default function ProfileDetail() {
     const { id } = useParams();
+    const { currentUser } = useIdentity();
     const [user, setUser] = useState(null);
-    const [allUsers, setAllUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // GitHub repos state
+    const [ghRepos, setGhRepos] = useState([]);
+    const [ghLoading, setGhLoading] = useState(false);
+
     // Message state
-    const [senderId, setSenderId] = useState('');
     const [msgText, setMsgText] = useState('');
     const [messages, setMessages] = useState([]);
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
+    const isOwnProfile = currentUser && parseInt(id) === currentUser.id;
+
     useEffect(() => {
         setLoading(true);
         getUser(id)
-            .then((r) => setUser(r.data))
+            .then((r) => {
+                setUser(r.data);
+                if (r.data.github_username) {
+                    setGhLoading(true);
+                    fetchGitHubProfile(r.data.github_username)
+                        .then((gh) => setGhRepos(gh.data.repos || []))
+                        .catch(() => setGhRepos([]))
+                        .finally(() => setGhLoading(false));
+                }
+            })
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
-        getUsers().then((r) => setAllUsers(r.data.filter((u) => u.id !== parseInt(id)))).catch(() => { });
     }, [id]);
 
-    // Load conversation when sender is selected
+    // Load conversation
     useEffect(() => {
-        if (senderId && id) {
-            getConversation(senderId, id)
+        if (currentUser && id && !isOwnProfile) {
+            getConversation(currentUser.id, id)
                 .then((r) => setMessages(r.data))
                 .catch(() => setMessages([]));
         }
-    }, [senderId, id, sent]);
+    }, [currentUser, id, sent, isOwnProfile]);
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!senderId || !msgText.trim()) return;
+        if (!currentUser || !msgText.trim()) return;
         setSending(true);
         try {
             await sendMessage({
-                sender_id: parseInt(senderId),
+                sender_id: currentUser.id,
                 receiver_id: parseInt(id),
                 content: msgText.trim(),
             });
@@ -87,6 +108,13 @@ export default function ProfileDetail() {
         );
     }
 
+    const avail = AVAILABILITY_MAP[user.availability] || AVAILABILITY_MAP['Looking for team'];
+
+    // Skill match
+    const mySkills = currentUser?.skills?.map(s => s.skill_name) || [];
+    const theirSkills = user.skills.map(s => s.skill_name);
+    const commonSkills = mySkills.filter(s => theirSkills.includes(s));
+
     return (
         <div className="page">
             <div className="container">
@@ -103,8 +131,18 @@ export default function ProfileDetail() {
                                 <h1>{user.name}</h1>
                                 <span className="profile-dept">{user.department}</span>
                                 <span className="profile-sem">Semester {user.semester}</span>
+                                <span className="availability-badge" style={{ color: avail.color, borderColor: avail.color }}>
+                                    {avail.emoji} {user.availability}
+                                </span>
                             </div>
                         </div>
+
+                        {/* Skill Match */}
+                        {!isOwnProfile && currentUser && commonSkills.length > 0 && (
+                            <div className="skill-match-banner">
+                                🎯 <strong>{commonSkills.length} skill{commonSkills.length > 1 ? 's' : ''} in common:</strong> {commonSkills.join(', ')}
+                            </div>
+                        )}
 
                         {user.bio && (
                             <div className="profile-bio-section">
@@ -122,15 +160,59 @@ export default function ProfileDetail() {
                             </div>
                         </div>
 
-                        {user.github_url && (
-                            <a
-                                href={user.github_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="btn btn-secondary github-link"
-                            >
-                                🔗 GitHub Profile
-                            </a>
+                        {/* Quick Actions */}
+                        <div className="profile-actions">
+                            {user.whatsapp_number && (
+                                <a
+                                    href={`https://wa.me/91${user.whatsapp_number}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="btn btn-whatsapp"
+                                >
+                                    💬 Chat on WhatsApp
+                                </a>
+                            )}
+                            {user.github_url && (
+                                <a
+                                    href={user.github_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="btn btn-secondary github-link"
+                                >
+                                    🔗 GitHub Profile
+                                </a>
+                            )}
+                        </div>
+
+                        {/* GitHub Repos */}
+                        {user.github_username && (
+                            <div className="github-repos-section">
+                                <h3>📂 GitHub Repos</h3>
+                                {ghLoading ? (
+                                    <p className="text-muted">Loading repos…</p>
+                                ) : ghRepos.length > 0 ? (
+                                    <div className="repos-grid">
+                                        {ghRepos.map((repo) => (
+                                            <a
+                                                key={repo.name}
+                                                href={repo.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="repo-card"
+                                            >
+                                                <div className="repo-header">
+                                                    <span className="repo-name">{repo.name}</span>
+                                                    {repo.stars > 0 && <span className="repo-stars">⭐ {repo.stars}</span>}
+                                                </div>
+                                                {repo.description && <p className="repo-desc">{repo.description}</p>}
+                                                {repo.language && <span className="repo-lang">{repo.language}</span>}
+                                            </a>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted">No public repos found</p>
+                                )}
+                            </div>
                         )}
 
                         <div className="profile-meta">
@@ -139,67 +221,66 @@ export default function ProfileDetail() {
                         </div>
                     </div>
 
-                    {/* Message Panel */}
+                    {/* Message Panel or Own Profile */}
                     <div className="message-panel glass-card slide-up">
-                        <h2>💬 Send a Message</h2>
-                        <p className="message-hint">
-                            Reach out to {user.name.split(' ')[0]} about a project or collaboration
-                        </p>
+                        {isOwnProfile ? (
+                            <>
+                                <h2>👋 This is your profile</h2>
+                                <p className="message-hint">This is how other SLRTCE students see you. Looking good!</p>
+                            </>
+                        ) : !currentUser ? (
+                            <>
+                                <h2>💬 Want to connect?</h2>
+                                <p className="message-hint">
+                                    <Link to="/create-profile" className="text-link">Create a profile</Link> to message {user.name.split(' ')[0]}
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <h2>💬 Message {user.name.split(' ')[0]}</h2>
+                                <p className="message-hint">
+                                    Sending as <strong>{currentUser.name}</strong>
+                                </p>
 
-                        <form className="message-form" onSubmit={handleSend}>
-                            <div className="form-group">
-                                <label>Your Identity</label>
-                                <select
-                                    className="form-select"
-                                    value={senderId}
-                                    onChange={(e) => setSenderId(e.target.value)}
-                                >
-                                    <option value="">Select your name</option>
-                                    {allUsers.map((u) => (
-                                        <option key={u.id} value={u.id}>
-                                            {u.name} — {u.department}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                                <form className="message-form" onSubmit={handleSend}>
+                                    <div className="form-group">
+                                        <textarea
+                                            className="form-textarea"
+                                            placeholder={`Hi ${user.name.split(' ')[0]}, I'd love to collaborate on...`}
+                                            value={msgText}
+                                            onChange={(e) => setMsgText(e.target.value)}
+                                            rows={3}
+                                        />
+                                    </div>
 
-                            <div className="form-group">
-                                <label>Message</label>
-                                <textarea
-                                    className="form-textarea"
-                                    placeholder={`Hi ${user.name.split(' ')[0]}, I'd love to collaborate on...`}
-                                    value={msgText}
-                                    onChange={(e) => setMsgText(e.target.value)}
-                                    rows={3}
-                                />
-                            </div>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary btn-lg send-btn"
+                                        disabled={sending || !msgText.trim()}
+                                    >
+                                        {sending ? 'Sending…' : 'Send Message 📨'}
+                                    </button>
+                                </form>
 
-                            <button
-                                type="submit"
-                                className="btn btn-primary btn-lg send-btn"
-                                disabled={sending || !senderId || !msgText.trim()}
-                            >
-                                {sending ? 'Sending…' : 'Send Message 📨'}
-                            </button>
-                        </form>
-
-                        {/* Conversation Thread */}
-                        {senderId && messages.length > 0 && (
-                            <div className="conversation">
-                                <h3>Conversation</h3>
-                                <div className="msg-list">
-                                    {messages.map((msg) => (
-                                        <div
-                                            key={msg.id}
-                                            className={`msg-bubble ${msg.sender_id === parseInt(senderId) ? 'msg-sent' : 'msg-received'}`}
-                                        >
-                                            <span className="msg-sender">{msg.sender.name}</span>
-                                            <p className="msg-text">{msg.content}</p>
-                                            <span className="msg-time">{formatTime(msg.created_at)}</span>
+                                {/* Conversation Thread */}
+                                {messages.length > 0 && (
+                                    <div className="conversation">
+                                        <h3>Conversation</h3>
+                                        <div className="msg-list">
+                                            {messages.map((msg) => (
+                                                <div
+                                                    key={msg.id}
+                                                    className={`msg-bubble ${msg.sender_id === currentUser.id ? 'msg-sent' : 'msg-received'}`}
+                                                >
+                                                    <span className="msg-sender">{msg.sender.name}</span>
+                                                    <p className="msg-text">{msg.content}</p>
+                                                    <span className="msg-time">{formatTime(msg.created_at)}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

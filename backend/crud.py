@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import User, UserSkill, Project, Message
-from schemas import UserCreate, ProjectCreate, MessageCreate
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog
+from schemas import UserCreate, ProjectCreate, MessageCreate, ApplicationCreate, AnnouncementCreate, DevlogCreate
 from typing import Optional
 
 
@@ -16,6 +16,9 @@ def create_user(db: Session, user: UserCreate) -> User:
         department=user.department,
         avatar_url=user.avatar_url,
         github_url=user.github_url,
+        github_username=user.github_username,
+        whatsapp_number=user.whatsapp_number,
+        availability=user.availability,
     )
     db.add(db_user)
     db.commit()
@@ -35,6 +38,7 @@ def get_users(
     semester: Optional[int] = None,
     department: Optional[str] = None,
     search: Optional[str] = None,
+    availability: Optional[str] = None,
 ) -> list[User]:
     query = db.query(User)
 
@@ -48,6 +52,8 @@ def get_users(
         query = query.filter(func.lower(User.department) == department.lower())
     if search:
         query = query.filter(User.name.ilike(f"%{search}%"))
+    if availability:
+        query = query.filter(func.lower(User.availability) == availability.lower())
 
     return query.distinct().order_by(User.created_at.desc()).all()
 
@@ -135,5 +141,94 @@ def get_messages_between(db: Session, user1_id: int, user2_id: int) -> list[Mess
             | ((Message.sender_id == user2_id) & (Message.receiver_id == user1_id))
         )
         .order_by(Message.created_at.asc())
+        .all()
+    )
+
+
+# ── Applications ─────────────────────────────────────────
+
+def create_application(db: Session, app: ApplicationCreate) -> Application:
+    # Check for duplicate
+    existing = db.query(Application).filter(
+        Application.project_id == app.project_id,
+        Application.applicant_id == app.applicant_id,
+    ).first()
+    if existing:
+        return existing  # Don't create duplicates
+
+    db_app = Application(
+        project_id=app.project_id,
+        applicant_id=app.applicant_id,
+        message=app.message,
+    )
+    db.add(db_app)
+    db.commit()
+    db.refresh(db_app)
+    return db_app
+
+
+def get_applications_for_project(db: Session, project_id: int) -> list[Application]:
+    return (
+        db.query(Application)
+        .filter(Application.project_id == project_id)
+        .order_by(Application.created_at.desc())
+        .all()
+    )
+
+
+def get_application_count(db: Session, project_id: int) -> int:
+    return db.query(Application).filter(Application.project_id == project_id).count()
+
+
+def update_application_status(db: Session, app_id: int, status: str) -> Optional[Application]:
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if app:
+        app.status = status
+        db.commit()
+        db.refresh(app)
+    return app
+
+
+# ── Announcements ────────────────────────────────────────
+
+def create_announcement(db: Session, ann: AnnouncementCreate) -> Announcement:
+    db_ann = Announcement(
+        title=ann.title,
+        content=ann.content,
+        tag=ann.tag,
+        author_id=ann.author_id,
+    )
+    db.add(db_ann)
+    db.commit()
+    db.refresh(db_ann)
+    return db_ann
+
+
+def get_announcements(db: Session, tag: str = None) -> list[Announcement]:
+    q = db.query(Announcement)
+    if tag:
+        q = q.filter(Announcement.tag == tag)
+    return q.order_by(Announcement.created_at.desc()).all()
+
+
+# ── Devlogs ──────────────────────────────────────────────
+
+def create_devlog(db: Session, devlog: DevlogCreate) -> Devlog:
+    db_devlog = Devlog(
+        author_id=devlog.author_id,
+        project_id=devlog.project_id,
+        content=devlog.content,
+    )
+    db.add(db_devlog)
+    db.commit()
+    db.refresh(db_devlog)
+    return db_devlog
+
+
+def get_devlogs(db: Session, limit: int = 50) -> list[Devlog]:
+    return (
+        db.query(Devlog)
+        .order_by(Devlog.created_at.desc())
+        .limit(limit)
         .all()
     )

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
@@ -13,6 +13,9 @@ class UserCreate(BaseModel):
     department: str
     avatar_url: Optional[str] = ""
     github_url: Optional[str] = ""
+    github_username: Optional[str] = ""
+    whatsapp_number: Optional[str] = ""
+    availability: Optional[str] = "Looking for team"
     skills: list[str] = []
 
 
@@ -33,6 +36,9 @@ class UserResponse(BaseModel):
     department: str
     avatar_url: str
     github_url: str
+    github_username: str
+    whatsapp_number: str
+    availability: str
     created_at: datetime
     skills: list[SkillResponse] = []
 
@@ -98,6 +104,112 @@ class MessageResponse(BaseModel):
     content: str
     created_at: datetime
     sender: MessageSenderBrief
+
+    class Config:
+        from_attributes = True
+
+
+# ── GitHub Schemas ────────────────────────────────────────
+
+class GitHubRepo(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    language: Optional[str] = ""
+    stars: int = 0
+    url: str
+    updated_at: str
+
+
+class GitHubProfile(BaseModel):
+    username: str
+    name: Optional[str] = ""
+    avatar_url: str = ""
+    bio: Optional[str] = ""
+    public_repos: int = 0
+    followers: int = 0
+    repos: list[GitHubRepo] = []
+    detected_skills: list[str] = []
+
+
+# ── Application Schemas ───────────────────────────────────
+
+class ApplicationCreate(BaseModel):
+    project_id: int
+    applicant_id: int
+    message: Optional[str] = ""
+
+
+class ApplicantBrief(BaseModel):
+    id: int
+    name: str
+    avatar_url: str
+    department: str
+    semester: int
+
+    class Config:
+        from_attributes = True
+
+
+class ApplicationResponse(BaseModel):
+    id: int
+    project_id: int
+    applicant_id: int
+    message: str
+    status: str
+    created_at: datetime
+    applicant: ApplicantBrief
+
+    class Config:
+        from_attributes = True
+
+
+# ── Announcement Schemas ──────────────────────────────────
+
+class AnnouncementCreate(BaseModel):
+    title: str
+    content: str
+    tag: Optional[str] = "general"
+    author_id: int
+
+
+class AuthorBrief(BaseModel):
+    id: int
+    name: str
+    avatar_url: str
+
+    class Config:
+        from_attributes = True
+
+
+class AnnouncementResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    tag: str
+    author_id: int
+    created_at: datetime
+    author: AuthorBrief
+
+    class Config:
+        from_attributes = True
+
+
+# ── Devlog Schemas ────────────────────────────────────────
+
+class DevlogCreate(BaseModel):
+    author_id: int
+    project_id: Optional[int] = None
+    content: str
+
+
+class DevlogResponse(BaseModel):
+    id: int
+    author_id: int
+    project_id: Optional[int] = None
+    content: str
+    created_at: datetime
+    author: AuthorBrief
+    project: Optional[ProjectOwnerBrief] = None
 
     class Config:
         from_attributes = True

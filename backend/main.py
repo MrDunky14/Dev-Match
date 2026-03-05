@@ -5,8 +5,13 @@ from typing import Optional
 import os
 
 from database import engine, get_db, Base
-from models import User, UserSkill, Project, Message
-from schemas import UserCreate, UserResponse, ProjectCreate, ProjectResponse, MessageCreate, MessageResponse
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog
+from schemas import (
+    UserCreate, UserResponse, ProjectCreate, ProjectResponse,
+    MessageCreate, MessageResponse, ApplicationCreate, ApplicationResponse,
+    AnnouncementCreate, AnnouncementResponse, DevlogCreate, DevlogResponse
+)
+from github_service import fetch_github_profile
 import crud
 
 # Create tables
@@ -57,9 +62,10 @@ def list_users(
     semester: Optional[int] = Query(None),
     department: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    availability: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return crud.get_users(db, skill=skill, semester=semester, department=department, search=search)
+    return crud.get_users(db, skill=skill, semester=semester, department=department, search=search, availability=availability)
 
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
@@ -139,3 +145,74 @@ def get_user_messages(user_id: int, db: Session = Depends(get_db)):
 def get_conversation(user1_id: int, user2_id: int, db: Session = Depends(get_db)):
     return crud.get_messages_between(db, user1_id, user2_id)
 
+
+# ── GitHub ─────────────────────────────────────────────
+
+@app.get("/api/github/{username}")
+async def get_github_profile(username: str):
+    result = await fetch_github_profile(username)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+# ── Applications ──────────────────────────────────────────
+
+@app.post("/api/projects/{project_id}/apply", response_model=ApplicationResponse)
+def apply_to_project(project_id: int, app: ApplicationCreate, db: Session = Depends(get_db)):
+    if not crud.get_project(db, project_id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    if not crud.get_user(db, app.applicant_id):
+        raise HTTPException(status_code=404, detail="Applicant not found")
+    app.project_id = project_id
+    return crud.create_application(db, app)
+
+
+@app.get("/api/projects/{project_id}/applications", response_model=list[ApplicationResponse])
+def get_project_applications(project_id: int, db: Session = Depends(get_db)):
+    return crud.get_applications_for_project(db, project_id)
+
+
+@app.get("/api/projects/{project_id}/application-count")
+def get_application_count(project_id: int, db: Session = Depends(get_db)):
+    return {"count": crud.get_application_count(db, project_id)}
+
+
+@app.patch("/api/applications/{app_id}")
+def update_application(app_id: int, status: str = Query(...), db: Session = Depends(get_db)):
+    if status not in ("accepted", "rejected"):
+        raise HTTPException(status_code=400, detail="Status must be 'accepted' or 'rejected'")
+    result = crud.update_application_status(db, app_id, status)
+    if not result:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return {"status": "updated"}
+
+
+# ── Announcements ─────────────────────────────────────────
+
+@app.post("/api/announcements", response_model=AnnouncementResponse)
+def create_announcement(ann: AnnouncementCreate, db: Session = Depends(get_db)):
+    if not crud.get_user(db, ann.author_id):
+        raise HTTPException(status_code=404, detail="Author not found")
+    return crud.create_announcement(db, ann)
+
+
+@app.get("/api/announcements", response_model=list[AnnouncementResponse])
+def list_announcements(tag: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    return crud.get_announcements(db, tag=tag)
+
+
+# ── Devlogs ───────────────────────────────────────────────
+
+@app.post("/api/devlogs", response_model=DevlogResponse)
+def create_devlog(devlog: DevlogCreate, db: Session = Depends(get_db)):
+    if not crud.get_user(db, devlog.author_id):
+        raise HTTPException(status_code=404, detail="Author not found")
+    if devlog.project_id and not crud.get_project(db, devlog.project_id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    return crud.create_devlog(db, devlog)
+
+
+@app.get("/api/devlogs", response_model=list[DevlogResponse])
+def list_devlogs(limit: int = Query(50), db: Session = Depends(get_db)):
+    return crud.get_devlogs(db, limit=limit)

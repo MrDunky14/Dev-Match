@@ -1,0 +1,189 @@
+/* ── Devlog Feed ────────────────────────────────────────── */
+.devlog-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.feed-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.feed-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.pulse-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 10px var(--accent-cyan);
+    animation: pulse-small 2s infinite;
+}
+
+@keyframes pulse-small {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(6, 214, 160, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(6, 214, 160, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(6, 214, 160, 0);
+    }
+}
+
+/* ── Post Input ────────────────────────────────────────── */
+.devlog-post-card {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+}
+
+.post-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border-active);
+    flex-shrink: 0;
+}
+
+.post-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.post-textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+}
+
+.post-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 12px;
+}
+
+.char-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.btn-sm {
+    padding: 6px 16px;
+    font-size: 0.8rem;
+}
+
+/* ── Feed List ─────────────────────────────────────────── */
+.feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.devlog-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.devlog-header {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.devlog-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: var(--bg-secondary);
+}
+
+.devlog-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.devlog-author-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.devlog-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.devlog-author:hover {
+    color: var(--accent-purple-light);
+    text-decoration: underline;
+}
+
+.devlog-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.devlog-project {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.project-highlight {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
+.project-highlight:hover {
+    text-decoration: underline;
+}
+
+.devlog-content {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-left: 52px;
+    /* Align with text, skipping avatar */
+}
+
+@media (max-width: 600px) {
+    .devlog-content {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}

@@ -15,6 +15,9 @@ class User(Base):
     department = Column(String(100), nullable=False)
     avatar_url = Column(String(300), default="")
     github_url = Column(String(300), default="")
+    github_username = Column(String(100), default="")
+    whatsapp_number = Column(String(15), default="")
+    availability = Column(String(30), default="Looking for team")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan")
@@ -57,3 +60,43 @@ class Message(Base):
 
     sender = relationship("User", foreign_keys=[sender_id])
     receiver = relationship("User", foreign_keys=[receiver_id])
+
+
+class Application(Base):
+    __tablename__ = "applications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    applicant_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(Text, default="")
+    status = Column(String(20), default="pending")  # pending, accepted, rejected
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    project = relationship("Project")
+    applicant = relationship("User")
+
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    content = Column(Text, nullable=False)
+    tag = Column(String(30), default="general")  # hackathon, workshop, team-needed, resource, general
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    author = relationship("User")
+
+
+class Devlog(Base):
+    __tablename__ = "devlogs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    author = relationship("User")
+    project = relationship("Project")

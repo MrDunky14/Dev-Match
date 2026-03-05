@@ -1,0 +1,208 @@
+/* ── Leaderboard Styles ────────────────────────────── */
+.leaderboard-header {
+    margin-bottom: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.glowing-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+    background: linear-gradient(135deg, #a78bfa, #06d6a0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.leaderboard-card {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    gap: 20px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.leaderboard-card:hover {
+    transform: translateX(8px);
+    background: rgba(124, 58, 237, 0.1);
+}
+
+.lb-rank {
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+
+.lb-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--border-subtle);
+}
+
+.lb-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lb-name {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.lb-dept {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.lb-skills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
+    margin-right: 20px;
+}
+
+.lb-more-skills {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.lb-score-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    border-left: 1px solid var(--border-subtle);
+    padding-left: 20px;
+    position: relative;
+}
+
+.lb-score {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.score-value {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+}
+
+.score-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* Ranks styling */
+.rank-1 {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(17, 24, 39, 0.7));
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.rank-1 .lb-rank {
+    font-size: 2rem;
+}
+
+.rank-1 .lb-avatar {
+    border-color: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+.rank-1 .score-value {
+    color: #f59e0b;
+}
+
+.rank-2 {
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.15), rgba(17, 24, 39, 0.7));
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.rank-2 .lb-rank {
+    font-size: 1.8rem;
+}
+
+.rank-2 .lb-avatar {
+    border-color: #cbd5e1;
+}
+
+.rank-2 .score-value {
+    color: #cbd5e1;
+}
+
+.rank-3 {
+    background: linear-gradient(90deg, rgba(180, 83, 9, 0.15), rgba(17, 24, 39, 0.7));
+    border: 1px solid rgba(180, 83, 9, 0.4);
+}
+
+.rank-3 .lb-rank {
+    font-size: 1.6rem;
+}
+
+.rank-3 .lb-avatar {
+    border-color: #d97706;
+}
+
+.rank-3 .score-value {
+    color: #d97706;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .lb-rank {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .lb-score-col {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 12px;
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 8px;
+    }
+
+    .lb-skills {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        margin-top: 8px;
+        margin-right: 0;
+    }
+}

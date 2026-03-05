@@ -5,10 +5,11 @@ const DEPARTMENTS = [
     'All Departments',
     'Computer Science',
     'Information Technology',
-    'Data Science',
-    'Design',
-    'Electronics',
+    'AI & Data Science',
+    'EXTC',
     'Mechanical',
+    'Civil',
+    'Electrical',
 ];
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -110,10 +111,26 @@ export default function FilterPanel({ skills, filters, onChange }) {
                 </div>
             )}
 
+            {/* Availability */}
+            <div className="filter-section">
+                <label className="filter-label">Availability</label>
+                <select
+                    className="form-select"
+                    value={filters.availability || ''}
+                    onChange={(e) => handleChange('availability', e.target.value)}
+                >
+                    <option value="">All Statuses</option>
+                    <option value="Looking for team">🟢 Looking for team</option>
+                    <option value="Open to collaborate">🔵 Open to collaborate</option>
+                    <option value="Busy with project">🟡 Busy with project</option>
+                    <option value="Not available">🔴 Not available</option>
+                </select>
+            </div>
+
             {/* Reset */}
             <button
                 className="btn btn-ghost filter-reset"
-                onClick={() => onChange({ search: '', department: '', semester: '', skill: '' })}
+                onClick={() => onChange({ search: '', department: '', semester: '', skill: '', availability: '' })}
             >
                 ✕ Reset Filters
             </button>

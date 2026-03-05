@@ -1,3 +1,56 @@
+/* ── GitHub Import Section ─────────────────────────── */
+.github-import {
+    padding: 24px;
+    width: 100%;
+    max-width: 720px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+.github-import-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.github-icon {
+    font-size: 1.8rem;
+}
+
+.github-import-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    margin: 0;
+    color: var(--accent-purple-light);
+}
+
+.github-import-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+}
+
+.github-import-row {
+    display: flex;
+    gap: 10px;
+}
+
+.github-import-row .form-input {
+    flex: 1;
+}
+
+.github-import-success {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--radius-md);
+    color: #10b981;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
 /* ── Create Profile ────────────────────────────────────── */
 .profile-form {
     padding: 36px;

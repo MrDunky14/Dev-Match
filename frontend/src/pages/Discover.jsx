@@ -13,6 +13,7 @@ export default function Discover() {
         department: '',
         semester: '',
         skill: '',
+        availability: '',
     });
 
     const fetchUsers = useCallback(async () => {
@@ -23,6 +24,7 @@ export default function Discover() {
             if (filters.department) params.department = filters.department;
             if (filters.semester) params.semester = filters.semester;
             if (filters.skill) params.skill = filters.skill;
+            if (filters.availability) params.availability = filters.availability;
             const res = await getUsers(params);
             setUsers(res.data);
         } catch (err) {
@@ -45,7 +47,7 @@ export default function Discover() {
             <div className="container">
                 <div className="page-header">
                     <h1>Discover Developers</h1>
-                    <p>Browse campus talent and find your next teammate</p>
+                    <p>Browse SLRTCE talent and find your next project partner</p>
                 </div>
 
                 <div className="discover-layout">

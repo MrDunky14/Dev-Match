@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProject, getUsers } from '../api';
+import { createProject } from '../api';
+import { useIdentity } from '../hooks/useIdentity';
 import SkillTag from '../components/SkillTag';
 import './PostProject.css';
 
@@ -20,21 +21,16 @@ const COMMON_ROLES = [
 
 export default function PostProject() {
     const navigate = useNavigate();
-    const [users, setUsers] = useState([]);
+    const { currentUser } = useIdentity();
     const [form, setForm] = useState({
         title: '',
         description: '',
-        owner_id: '',
         selectedSkills: [],
         selectedRoles: [],
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-
-    useEffect(() => {
-        getUsers().then((r) => setUsers(r.data)).catch(() => { });
-    }, []);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -68,7 +64,11 @@ export default function PostProject() {
         e.preventDefault();
         setError('');
 
-        if (!form.title || !form.description || !form.owner_id) {
+        if (!currentUser) {
+            setError('Please create a profile first');
+            return;
+        }
+        if (!form.title || !form.description) {
             setError('Please fill in all required fields');
             return;
         }
@@ -78,7 +78,7 @@ export default function PostProject() {
             await createProject({
                 title: form.title,
                 description: form.description,
-                owner_id: parseInt(form.owner_id),
+                owner_id: currentUser.id,
                 skills_needed: form.selectedSkills.join(', '),
                 roles_needed: form.selectedRoles.join(', '),
             });
@@ -105,12 +105,29 @@ export default function PostProject() {
         );
     }
 
+    if (!currentUser) {
+        return (
+            <div className="page">
+                <div className="container">
+                    <div className="empty-state">
+                        <span className="empty-icon">🔒</span>
+                        <h3>Create a profile first</h3>
+                        <p>You need a profile to post projects</p>
+                        <button className="btn btn-primary" onClick={() => navigate('/create-profile')}>
+                            Join SLRTCE ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="page">
             <div className="container">
                 <div className="page-header">
                     <h1>Post a Project</h1>
-                    <p>Describe your idea and find the teammates you need</p>
+                    <p>Posting as <strong>{currentUser.name}</strong> — describe your idea and find teammates</p>
                 </div>
 
                 <form className="project-form glass-card slide-up" onSubmit={handleSubmit}>
@@ -137,16 +154,6 @@ export default function PostProject() {
                             onChange={(e) => { handleChange(e); autoResize(e); }}
                             rows={4}
                         />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Your Name *</label>
-                        <select name="owner_id" className="form-select" value={form.owner_id} onChange={handleChange}>
-                            <option value="">Select yourself</option>
-                            {users.map((u) => (
-                                <option key={u.id} value={u.id}>{u.name} — {u.department}</option>
-                            ))}
-                        </select>
                     </div>
 
                     <div className="form-group">

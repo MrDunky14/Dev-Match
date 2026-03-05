@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUser } from '../api';
+import { createUser, fetchGitHubProfile } from '../api';
+import { useIdentity } from '../hooks/useIdentity';
 import SkillTag from '../components/SkillTag';
 import './CreateProfile.css';
 
@@ -12,12 +13,17 @@ const POPULAR_SKILLS = [
 ];
 
 const DEPARTMENTS = [
-    'Computer Science', 'Information Technology', 'Data Science',
-    'Design', 'Electronics', 'Mechanical',
+    'Computer Science', 'Information Technology', 'AI & Data Science',
+    'EXTC', 'Mechanical', 'Civil', 'Electrical',
+];
+
+const AVAILABILITY_OPTIONS = [
+    'Looking for team', 'Open to collaborate', 'Busy with project', 'Not available',
 ];
 
 export default function CreateProfile() {
     const navigate = useNavigate();
+    const { setCurrentUser } = useIdentity();
     const [form, setForm] = useState({
         name: '',
         email: '',
@@ -25,12 +31,20 @@ export default function CreateProfile() {
         semester: '',
         department: '',
         github_url: '',
+        github_username: '',
+        whatsapp_number: '',
+        availability: 'Looking for team',
         skills: [],
     });
     const [customSkill, setCustomSkill] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+
+    // GitHub import state
+    const [ghUsername, setGhUsername] = useState('');
+    const [ghLoading, setGhLoading] = useState(false);
+    const [ghImported, setGhImported] = useState(false);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -59,6 +73,29 @@ export default function CreateProfile() {
         }
     };
 
+    const importFromGitHub = async () => {
+        if (!ghUsername.trim()) return;
+        setGhLoading(true);
+        setError('');
+        try {
+            const { data } = await fetchGitHubProfile(ghUsername.trim());
+            setForm((prev) => ({
+                ...prev,
+                name: data.name || prev.name,
+                bio: data.bio || prev.bio,
+                avatar_url: data.avatar_url || prev.avatar_url,
+                github_url: `https://github.com/${data.username}`,
+                github_username: data.username,
+                skills: [...new Set([...prev.skills, ...data.detected_skills])],
+            }));
+            setGhImported(true);
+        } catch {
+            setError(`GitHub user "${ghUsername}" not found. Check the username and try again.`);
+        } finally {
+            setGhLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -74,11 +111,12 @@ export default function CreateProfile() {
 
         setSubmitting(true);
         try {
-            await createUser({
+            const res = await createUser({
                 ...form,
                 semester: parseInt(form.semester),
-                avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${form.name}`,
+                avatar_url: form.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${form.name}`,
             });
+            setCurrentUser(res.data); // Auto-login
             setSuccess(true);
             setTimeout(() => navigate('/discover'), 2000);
         } catch (err) {
@@ -95,7 +133,7 @@ export default function CreateProfile() {
                     <div className="success-card glass-card slide-up">
                         <span className="success-icon">🎉</span>
                         <h2>Profile Created!</h2>
-                        <p>Welcome to Dev-Match. Redirecting you to the Discover page…</p>
+                        <p>Welcome to Dev-Match at SLRTCE. Redirecting you to the Discover page…</p>
                     </div>
                 </div>
             </div>
@@ -107,7 +145,40 @@ export default function CreateProfile() {
             <div className="container">
                 <div className="page-header">
                     <h1>Create Your Profile</h1>
-                    <p>List your skills and let the campus know what you bring to the table</p>
+                    <p>Join the SLRTCE developer community — list your skills and find your team</p>
+                </div>
+
+                {/* ── GitHub Import Section ── */}
+                <div className="github-import glass-card slide-up">
+                    <div className="github-import-header">
+                        <span className="github-icon">⚡</span>
+                        <div>
+                            <h3>Quick Start — Import from GitHub</h3>
+                            <p>We'll auto-detect your name, bio, and skills from your repos</p>
+                        </div>
+                    </div>
+                    <div className="github-import-row">
+                        <input
+                            className="form-input"
+                            placeholder="GitHub username (e.g. torvalds)"
+                            value={ghUsername}
+                            onChange={(e) => setGhUsername(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), importFromGitHub())}
+                        />
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={importFromGitHub}
+                            disabled={ghLoading || !ghUsername.trim()}
+                        >
+                            {ghLoading ? '🔍 Scanning…' : ghImported ? '✅ Imported!' : '🔍 Import'}
+                        </button>
+                    </div>
+                    {ghImported && (
+                        <div className="github-import-success">
+                            ✅ Imported! We found <strong>{form.skills.length}</strong> skills from your repos. Review and edit below.
+                        </div>
+                    )}
                 </div>
 
                 <form className="profile-form glass-card slide-up" onSubmit={handleSubmit}>
@@ -130,7 +201,7 @@ export default function CreateProfile() {
                                 name="email"
                                 type="email"
                                 className="form-input"
-                                placeholder="you@campus.edu"
+                                placeholder="you@slrtce.in"
                                 value={form.email}
                                 onChange={handleChange}
                             />
@@ -153,6 +224,27 @@ export default function CreateProfile() {
                                 <option value="">Select department</option>
                                 {DEPARTMENTS.map((d) => (
                                     <option key={d} value={d}>{d}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>WhatsApp Number</label>
+                            <input
+                                name="whatsapp_number"
+                                className="form-input"
+                                placeholder="10-digit number (e.g. 9876543210)"
+                                value={form.whatsapp_number}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Availability</label>
+                            <select name="availability" className="form-select" value={form.availability} onChange={handleChange}>
+                                {AVAILABILITY_OPTIONS.map((a) => (
+                                    <option key={a} value={a}>{a}</option>
                                 ))}
                             </select>
                         </div>

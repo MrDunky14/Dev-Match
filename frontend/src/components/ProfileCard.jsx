@@ -16,6 +16,11 @@ export default function ProfileCard({ user }) {
                 <div className="profile-info">
                     <h3 className="profile-name">{user.name}</h3>
                     <span className="profile-dept">{user.department}</span>
+                    {user.availability && (
+                        <span className={`card-availability ${user.availability === 'Looking for team' ? 'avail-green' : user.availability === 'Open to collaborate' ? 'avail-blue' : user.availability === 'Busy with project' ? 'avail-yellow' : 'avail-red'}`}>
+                            {user.availability}
+                        </span>
+                    )}
                 </div>
             </div>
 
