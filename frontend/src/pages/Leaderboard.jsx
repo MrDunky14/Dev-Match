@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUsers } from '../api';
+import { getLeaderboard } from '../api';
 import SkillTag from '../components/SkillTag';
 import './Leaderboard.css';
 
@@ -10,22 +10,8 @@ export default function Leaderboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        getUsers()
-            .then(res => {
-                // Calculate gamified "Dev Score" based on skills and profile activity
-                const rankedUsers = res.data.map(u => {
-                    const skillScore = (u.skills?.length || 0) * 15;
-                    // Boost based on profile completeness (github link adds big points)
-                    const githubBoost = u.github_username ? 120 : 0;
-                    // Add a tiny random factor based on id to avoid identical scores
-                    const activityBoost = ((20 - u.id) * 3);
-                    return {
-                        ...u,
-                        devScore: skillScore + githubBoost + activityBoost
-                    };
-                }).sort((a, b) => b.devScore - a.devScore);
-                setUsers(rankedUsers);
-            })
+        getLeaderboard()
+            .then(res => setUsers(res.data))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
@@ -49,7 +35,7 @@ export default function Leaderboard() {
             <div className="container">
                 <div className="page-header leaderboard-header text-center">
                     <h1 className="glowing-text">🏆 Campus Dev Leaderboard</h1>
-                    <p>The most active and skilled developers at SLRTCE.</p>
+                    <p>Ranked by real activity — projects, devlogs, skills, and GitHub contributions.</p>
                 </div>
 
                 {loading ? (
@@ -81,7 +67,7 @@ export default function Leaderboard() {
 
                                 <div className="lb-skills">
                                     {user.skills.slice(0, 3).map((s) => (
-                                        <SkillTag key={s.id} skill={s.skill_name} />
+                                        <SkillTag key={s} skill={s} />
                                     ))}
                                     {user.skills.length > 3 && (
                                         <span className="lb-more-skills">+{user.skills.length - 3}</span>
@@ -90,7 +76,7 @@ export default function Leaderboard() {
 
                                 <div className="lb-score-col">
                                     <div className="lb-score">
-                                        <span className="score-value">{user.devScore}</span>
+                                        <span className="score-value">{user.xp}</span>
                                         <span className="score-label">XP</span>
                                     </div>
                                     <div className="score-glow"></div>

@@ -64,6 +64,20 @@
     color: var(--text-secondary);
     text-decoration: none;
     transition: all var(--transition-base);
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
 }
 
 .nav-link:hover {
@@ -74,6 +88,11 @@
 .nav-link.active {
     color: var(--accent-purple-light);
     background: rgba(124, 58, 237, 0.12);
+}
+
+.nav-link.active::after {
+    width: 60%;
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
 }
 
 .nav-icon {

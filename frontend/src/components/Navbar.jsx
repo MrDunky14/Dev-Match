@@ -9,6 +9,7 @@ const NAV_ITEMS = [
     { path: '/projects', label: 'Projects', icon: '🚀' },
     { path: '/notices', label: 'Notices', icon: '📌' },
     { path: '/leaderboard', label: 'Rankings', icon: '🏆' },
+    { path: '/toolkit', label: 'Toolkit', icon: '🔗' },
 ];
 
 export default function Navbar() {

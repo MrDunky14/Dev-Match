@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDevlogs, createDevlog } from '../api';
+import { getDevlogs, createDevlog, toggleReaction } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
 import './DevlogFeed.css';
+
+const REACTION_EMOJIS = ['🔥', '👏', '🚀'];
 
 export default function DevlogFeed() {
     const navigate = useNavigate();
@@ -42,6 +44,16 @@ export default function DevlogFeed() {
         }
     };
 
+    const handleReact = async (devlogId, emoji) => {
+        if (!currentUser) return;
+        try {
+            await toggleReaction(devlogId, { user_id: currentUser.id, emoji });
+            fetchDevlogs(); // Refresh to show updated counts
+        } catch (err) {
+            console.error("Failed to react", err);
+        }
+    };
+
     const formatTime = (isoString) => {
         const date = new Date(isoString);
         const now = new Date();
@@ -51,6 +63,11 @@ export default function DevlogFeed() {
         if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
         if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
         return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    };
+
+    const getReactionCount = (log, emoji) => {
+        const rc = log.reaction_counts?.find(r => r.emoji === emoji);
+        return rc ? rc.count : 0;
     };
 
     return (
@@ -131,6 +148,23 @@ export default function DevlogFeed() {
                             </div>
                             <div className="devlog-content">
                                 {log.content}
+                            </div>
+                            <div className="devlog-reactions">
+                                {REACTION_EMOJIS.map(emoji => {
+                                    const count = getReactionCount(log, emoji);
+                                    return (
+                                        <button
+                                            key={emoji}
+                                            className={`reaction-btn ${count > 0 ? 'has-reactions' : ''}`}
+                                            onClick={() => handleReact(log.id, emoji)}
+                                            title={currentUser ? 'Click to react' : 'Create a profile to react'}
+                                            disabled={!currentUser}
+                                        >
+                                            <span className="reaction-emoji">{emoji}</span>
+                                            {count > 0 && <span className="reaction-count">{count}</span>}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))

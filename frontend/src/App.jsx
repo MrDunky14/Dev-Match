@@ -9,6 +9,7 @@ import PostProject from './pages/PostProject';
 import ProfileDetail from './pages/ProfileDetail';
 import NoticeBoard from './pages/NoticeBoard';
 import Leaderboard from './pages/Leaderboard';
+import DevToolkit from './pages/DevToolkit';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/profile/:id" element={<ProfileDetail />} />
           <Route path="/notices" element={<NoticeBoard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/toolkit" element={<DevToolkit />} />
         </Routes>
       </BrowserRouter>
     </IdentityProvider>

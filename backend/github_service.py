@@ -104,7 +104,7 @@ async def fetch_github_profile(username: str) -> dict:
         repos_data = repos_resp.json() if repos_resp.status_code == 200 else []
 
         # Build repos list and detect skills
-        all_languages = set()
+        all_languages = {}  # language -> repo count for breakdown
         detected_skills = set()
         repos = []
 
@@ -113,11 +113,12 @@ async def fetch_github_profile(username: str) -> dict:
                 continue  # Skip forks
 
             lang = repo.get("language") or ""
-            if lang and lang in LANGUAGE_SKILL_MAP:
-                mapped = LANGUAGE_SKILL_MAP[lang]
-                if mapped != "HTML/CSS":  # Don't auto-add HTML/CSS, too generic
-                    detected_skills.add(mapped)
-                all_languages.add(lang)
+            if lang:
+                all_languages[lang] = all_languages.get(lang, 0) + 1
+                if lang in LANGUAGE_SKILL_MAP:
+                    mapped = LANGUAGE_SKILL_MAP[lang]
+                    if mapped != "HTML/CSS":  # Don't auto-add HTML/CSS, too generic
+                        detected_skills.add(mapped)
 
             # Detect frameworks from repo name + description
             searchable = f"{repo.get('name', '')} {repo.get('description', '')}".lower()
@@ -137,6 +138,13 @@ async def fetch_github_profile(username: str) -> dict:
         # Sort repos: stars desc, then recently updated
         repos.sort(key=lambda r: (-r["stars"], r["updated_at"]), reverse=False)
 
+        # Compute language breakdown as percentages
+        total_lang_repos = sum(all_languages.values()) or 1
+        language_breakdown = [
+            {"language": lang, "percentage": round(count / total_lang_repos * 100)}
+            for lang, count in sorted(all_languages.items(), key=lambda x: -x[1])
+        ][:6]  # Top 6 languages
+
         # Check activity (pushed in last 30 days)
         now = datetime.now(timezone.utc)
         recent_push = any(
@@ -144,6 +152,25 @@ async def fetch_github_profile(username: str) -> dict:
             (now - datetime.fromisoformat(repo["pushed_at"].replace("Z", "+00:00"))).days < 30
             for repo in repos_data
         )
+
+        # Fetch latest commit from events API (lightweight, best-effort)
+        latest_commit = ""
+        try:
+            events_resp = await client.get(
+                f"{GITHUB_API}/users/{username}/events",
+                params={"per_page": 10},
+                headers={"Accept": "application/vnd.github.v3+json"},
+                timeout=5,
+            )
+            if events_resp.status_code == 200:
+                for event in events_resp.json():
+                    if event.get("type") == "PushEvent":
+                        commits = event.get("payload", {}).get("commits", [])
+                        if commits:
+                            latest_commit = commits[-1].get("message", "")
+                            break
+        except Exception:
+            pass  # Events are optional, don't break the profile
 
         result = {
             "username": username,
@@ -155,6 +182,8 @@ async def fetch_github_profile(username: str) -> dict:
             "repos": repos[:5],  # Top 5
             "detected_skills": sorted(list(detected_skills)),
             "recently_active": recent_push,
+            "language_breakdown": language_breakdown,
+            "latest_commit": latest_commit,
         }
 
         _set_cache(cache_key, result)

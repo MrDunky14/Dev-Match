@@ -1,6 +1,6 @@
 """Seed the database with sample SLRTCE students and projects."""
 from database import engine, SessionLocal, Base
-from models import User, UserSkill, Project, Message, Application, Announcement, Devlog
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction
 from datetime import datetime, timezone
 
 
@@ -247,6 +247,7 @@ def seed():
     try:
         db.query(Application).delete()
         db.query(Announcement).delete()
+        db.query(DevlogReaction).delete()
         db.query(Devlog).delete()
         db.query(Message).delete()
         db.query(UserSkill).delete()

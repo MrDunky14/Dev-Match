@@ -5,11 +5,12 @@ from typing import Optional
 import os
 
 from database import engine, get_db, Base
-from models import User, UserSkill, Project, Message, Application, Announcement, Devlog
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction
 from schemas import (
     UserCreate, UserResponse, ProjectCreate, ProjectResponse,
     MessageCreate, MessageResponse, ApplicationCreate, ApplicationResponse,
-    AnnouncementCreate, AnnouncementResponse, DevlogCreate, DevlogResponse
+    AnnouncementCreate, AnnouncementResponse, DevlogCreate, DevlogResponse,
+    ReactionCreate, ReactionCount, LeaderboardEntry,
 )
 from github_service import fetch_github_profile
 import crud
@@ -213,6 +214,38 @@ def create_devlog(devlog: DevlogCreate, db: Session = Depends(get_db)):
     return crud.create_devlog(db, devlog)
 
 
-@app.get("/api/devlogs", response_model=list[DevlogResponse])
+@app.get("/api/devlogs")
 def list_devlogs(limit: int = Query(50), db: Session = Depends(get_db)):
-    return crud.get_devlogs(db, limit=limit)
+    devlogs = crud.get_devlogs(db, limit=limit)
+    results = []
+    for d in devlogs:
+        counts = crud.get_reaction_counts(db, d.id)
+        reaction_counts = [{"emoji": emoji, "count": count} for emoji, count in counts]
+        results.append({
+            "id": d.id, "author_id": d.author_id, "project_id": d.project_id,
+            "content": d.content, "created_at": d.created_at,
+            "author": {"id": d.author.id, "name": d.author.name, "avatar_url": d.author.avatar_url or ""},
+            "project": {"id": d.project.id, "title": d.project.title} if d.project else None,
+            "reaction_counts": reaction_counts,
+        })
+    return results
+
+
+# ── Reactions ────────────────────────────────────────────
+
+@app.post("/api/devlogs/{devlog_id}/react")
+def react_to_devlog(devlog_id: int, reaction: ReactionCreate, db: Session = Depends(get_db)):
+    devlog = db.query(Devlog).filter(Devlog.id == devlog_id).first()
+    if not devlog:
+        raise HTTPException(status_code=404, detail="Devlog not found")
+    if not crud.get_user(db, reaction.user_id):
+        raise HTTPException(status_code=404, detail="User not found")
+    added = crud.toggle_reaction(db, devlog_id, reaction.user_id, reaction.emoji)
+    return {"action": "added" if added else "removed"}
+
+
+# ── Leaderboard ─────────────────────────────────────────
+
+@app.get("/api/leaderboard", response_model=list[LeaderboardEntry])
+def get_leaderboard(db: Session = Depends(get_db)):
+    return crud.get_leaderboard(db)

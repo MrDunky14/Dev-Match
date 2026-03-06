@@ -187,3 +187,57 @@
         margin-top: 4px;
     }
 }
+
+/* ── Reactions ─────────────────────────────────────────── */
+.devlog-reactions {
+    display: flex;
+    gap: 8px;
+    margin-left: 52px;
+    margin-top: 4px;
+}
+
+.reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+
+.reaction-btn:hover:not(:disabled) {
+    border-color: var(--accent-purple);
+    background: rgba(114, 9, 183, 0.1);
+    transform: scale(1.05);
+}
+
+.reaction-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.reaction-btn.has-reactions {
+    background: rgba(114, 9, 183, 0.08);
+    border-color: rgba(114, 9, 183, 0.3);
+}
+
+.reaction-emoji {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.reaction-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+    .devlog-reactions {
+        margin-left: 0;
+    }
+}

@@ -37,6 +37,10 @@ export const updateApplication = (appId, status) => API.patch(`/applications/${a
 // ── Devlogs ─────────────────────────────────────────
 export const createDevlog = (data) => API.post('/devlogs', data);
 export const getDevlogs = (limit = 50) => API.get('/devlogs', { params: { limit } });
+export const toggleReaction = (devlogId, data) => API.post(`/devlogs/${devlogId}/react`, data);
+
+// ── Leaderboard ─────────────────────────────────────
+export const getLeaderboard = () => API.get('/leaderboard');
 
 // ── Announcements ───────────────────────────────────
 export const getAnnouncements = (tag) => API.get('/announcements', { params: tag ? { tag } : {} });

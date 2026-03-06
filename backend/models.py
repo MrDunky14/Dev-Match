@@ -100,3 +100,15 @@ class Devlog(Base):
 
     author = relationship("User")
     project = relationship("Project")
+    reactions = relationship("DevlogReaction", back_populates="devlog", cascade="all, delete-orphan")
+
+
+class DevlogReaction(Base):
+    __tablename__ = "devlog_reactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    devlog_id = Column(Integer, ForeignKey("devlogs.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    emoji = Column(String(10), nullable=False)  # 🔥, 👏, 🚀
+
+    devlog = relationship("Devlog", back_populates="reactions")

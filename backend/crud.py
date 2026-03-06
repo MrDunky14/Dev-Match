@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from models import User, UserSkill, Project, Message, Application, Announcement, Devlog
-from schemas import UserCreate, ProjectCreate, MessageCreate, ApplicationCreate, AnnouncementCreate, DevlogCreate
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction
+from schemas import UserCreate, ProjectCreate, MessageCreate, ApplicationCreate, AnnouncementCreate, DevlogCreate, ReactionCreate
 from typing import Optional
 
 
@@ -232,3 +232,76 @@ def get_devlogs(db: Session, limit: int = 50) -> list[Devlog]:
         .limit(limit)
         .all()
     )
+
+
+# ── Reactions ─────────────────────────────────────────────
+
+def toggle_reaction(db: Session, devlog_id: int, user_id: int, emoji: str):
+    existing = db.query(DevlogReaction).filter(
+        DevlogReaction.devlog_id == devlog_id,
+        DevlogReaction.user_id == user_id,
+        DevlogReaction.emoji == emoji,
+    ).first()
+    if existing:
+        db.delete(existing)
+        db.commit()
+        return False  # removed
+    else:
+        db.add(DevlogReaction(devlog_id=devlog_id, user_id=user_id, emoji=emoji))
+        db.commit()
+        return True  # added
+
+
+def get_reaction_counts(db: Session, devlog_id: int):
+    return (
+        db.query(DevlogReaction.emoji, func.count(DevlogReaction.id))
+        .filter(DevlogReaction.devlog_id == devlog_id)
+        .group_by(DevlogReaction.emoji)
+        .all()
+    )
+
+
+# ── Leaderboard ──────────────────────────────────────────
+
+def get_leaderboard(db: Session):
+    users = db.query(User).all()
+    result = []
+    for u in users:
+        xp = 0
+        # Profile completeness (20%)
+        filled = sum([
+            bool(u.bio), bool(u.avatar_url), bool(u.github_url),
+            bool(u.github_username), bool(u.whatsapp_number),
+        ])
+        xp += filled * 10  # max 50
+        # Skills (15%)
+        skill_count = len(u.skills)
+        xp += min(skill_count * 8, 40)  # max 40
+        # Projects posted (15%)
+        project_count = db.query(Project).filter(Project.owner_id == u.id).count()
+        xp += min(project_count * 15, 45)  # max 45
+        # Devlogs posted (15%)
+        devlog_count = db.query(Devlog).filter(Devlog.author_id == u.id).count()
+        xp += min(devlog_count * 12, 36)  # max 36
+        # Applications (10%)
+        app_count = db.query(Application).filter(Application.applicant_id == u.id).count()
+        xp += min(app_count * 10, 30)  # max 30
+        # Messages sent (10%)
+        msg_count = db.query(Message).filter(Message.sender_id == u.id).count()
+        xp += min(msg_count * 5, 25)  # max 25
+        # GitHub bonus (15%)
+        if u.github_username:
+            xp += 25
+
+        result.append({
+            "id": u.id,
+            "name": u.name,
+            "avatar_url": u.avatar_url or "",
+            "department": u.department,
+            "semester": u.semester,
+            "skills": [s.skill_name for s in u.skills],
+            "xp": xp,
+            "github_username": u.github_username or "",
+        })
+    result.sort(key=lambda x: x["xp"], reverse=True)
+    return result

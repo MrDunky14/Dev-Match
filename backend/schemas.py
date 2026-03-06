@@ -202,6 +202,11 @@ class DevlogCreate(BaseModel):
     content: str
 
 
+class ReactionCount(BaseModel):
+    emoji: str
+    count: int
+
+
 class DevlogResponse(BaseModel):
     id: int
     author_id: int
@@ -210,6 +215,27 @@ class DevlogResponse(BaseModel):
     created_at: datetime
     author: AuthorBrief
     project: Optional[ProjectOwnerBrief] = None
+    reaction_counts: list[ReactionCount] = []
 
     class Config:
         from_attributes = True
+
+
+# ── Reaction Schemas ──────────────────────────────────────
+
+class ReactionCreate(BaseModel):
+    user_id: int
+    emoji: str
+
+
+# ── Leaderboard Schemas ──────────────────────────────────
+
+class LeaderboardEntry(BaseModel):
+    id: int
+    name: str
+    avatar_url: str
+    department: str
+    semester: int
+    skills: list[str]
+    xp: int
+    github_username: str

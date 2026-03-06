@@ -19,7 +19,7 @@ export default function ProfileDetail() {
     const [loading, setLoading] = useState(true);
 
     // GitHub repos state
-    const [ghRepos, setGhRepos] = useState([]);
+    const [ghData, setGhData] = useState(null);
     const [ghLoading, setGhLoading] = useState(false);
 
     // Message state
@@ -38,8 +38,8 @@ export default function ProfileDetail() {
                 if (r.data.github_username) {
                     setGhLoading(true);
                     fetchGitHubProfile(r.data.github_username)
-                        .then((gh) => setGhRepos(gh.data.repos || []))
-                        .catch(() => setGhRepos([]))
+                        .then((gh) => setGhData(gh.data))
+                        .catch(() => setGhData(null))
                         .finally(() => setGhLoading(false));
                 }
             })
@@ -184,33 +184,69 @@ export default function ProfileDetail() {
                             )}
                         </div>
 
-                        {/* GitHub Repos */}
+                        {/* GitHub Section */}
                         {user.github_username && (
                             <div className="github-repos-section">
-                                <h3>📂 GitHub Repos</h3>
+                                <h3>📂 GitHub Activity</h3>
                                 {ghLoading ? (
-                                    <p className="text-muted">Loading repos…</p>
-                                ) : ghRepos.length > 0 ? (
-                                    <div className="repos-grid">
-                                        {ghRepos.map((repo) => (
-                                            <a
-                                                key={repo.name}
-                                                href={repo.url}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="repo-card"
-                                            >
-                                                <div className="repo-header">
-                                                    <span className="repo-name">{repo.name}</span>
-                                                    {repo.stars > 0 && <span className="repo-stars">⭐ {repo.stars}</span>}
+                                    <p className="text-muted">Loading GitHub data…</p>
+                                ) : ghData ? (
+                                    <>
+                                        {/* Latest Commit */}
+                                        {ghData.latest_commit && (
+                                            <div className="latest-commit">
+                                                <span className="commit-label">Latest commit:</span>
+                                                <span className="commit-msg">{ghData.latest_commit}</span>
+                                            </div>
+                                        )}
+
+                                        {/* Language Breakdown */}
+                                        {ghData.language_breakdown?.length > 0 && (
+                                            <div className="lang-breakdown">
+                                                <h4>Languages</h4>
+                                                <div className="lang-bars">
+                                                    {ghData.language_breakdown.map(lb => (
+                                                        <div key={lb.language} className="lang-bar-row">
+                                                            <span className="lang-name">{lb.language}</span>
+                                                            <div className="lang-bar-track">
+                                                                <div
+                                                                    className="lang-bar-fill"
+                                                                    style={{ width: `${lb.percentage}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="lang-pct">{lb.percentage}%</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                {repo.description && <p className="repo-desc">{repo.description}</p>}
-                                                {repo.language && <span className="repo-lang">{repo.language}</span>}
-                                            </a>
-                                        ))}
-                                    </div>
+                                            </div>
+                                        )}
+
+                                        {/* Repos */}
+                                        {ghData.repos?.length > 0 ? (
+                                            <div className="repos-grid">
+                                                {ghData.repos.map((repo) => (
+                                                    <a
+                                                        key={repo.name}
+                                                        href={repo.url}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="repo-card"
+                                                    >
+                                                        <div className="repo-header">
+                                                            <span className="repo-name">{repo.name}</span>
+                                                            {repo.stars > 0 && <span className="repo-stars">⭐ {repo.stars}</span>}
+                                                        </div>
+                                                        {repo.description && <p className="repo-desc">{repo.description}</p>}
+                                                        {repo.language && <span className="repo-lang">{repo.language}</span>}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-muted">No public repos found</p>
+                                        )}
+                                    </>
                                 ) : (
-                                    <p className="text-muted">No public repos found</p>
+                                    <p className="text-muted">Could not load GitHub data</p>
                                 )}
                             </div>
                         )}
