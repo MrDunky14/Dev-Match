@@ -1,6 +1,6 @@
-"""GitHub API service — fetches profiles, repos, and auto-detects skills."""
 import httpx
 import asyncio
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -83,17 +83,25 @@ async def fetch_github_profile(username: str) -> dict:
     if cached:
         return cached
 
+    # Base headers required by GitHub API
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    
+    # Add token if available to bump rate limit from 60 to 5000 req/hr
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if github_token:
+        headers["Authorization"] = f"Bearer {github_token}"
+
     async with httpx.AsyncClient() as client:
         # Fetch user profile and repos concurrently to half the delay time
         user_req = client.get(
             f"{GITHUB_API}/users/{username}",
-            headers={"Accept": "application/vnd.github.v3+json"},
+            headers=headers,
             timeout=10,
         )
         repos_req = client.get(
             f"{GITHUB_API}/users/{username}/repos",
             params={"sort": "updated", "per_page": 10, "type": "owner"},
-            headers={"Accept": "application/vnd.github.v3+json"},
+            headers=headers,
             timeout=10,
         )
         
