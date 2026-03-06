@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useIdentity } from '../hooks/useIdentity';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Compass, Rocket, Pin, Trophy, Wrench, Menu, X, LogOut, User } from 'lucide-react';
+import { Home, Compass, Rocket, Pin, Trophy, Wrench, Menu, X, LogOut, User, LayoutDashboard } from 'lucide-react';
 import './Navbar.css';
 
 const NAV_ITEMS = [
@@ -93,6 +93,9 @@ export default function Navbar() {
                                         className="user-dropdown glass-card"
                                         onClick={() => setShowMenu(false)}
                                     >
+                                        <Link to="/dashboard" className="dropdown-item">
+                                            <LayoutDashboard size={16} /> Dashboard
+                                        </Link>
                                         <Link to={`/profile/${currentUser.id}`} className="dropdown-item">
                                             <User size={16} /> My Profile
                                         </Link>

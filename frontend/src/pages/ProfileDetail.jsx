@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send } from 'lucide-react';
 import { getUser, sendMessage, getConversation, fetchGitHubProfile } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
