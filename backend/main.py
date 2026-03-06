@@ -249,6 +249,16 @@ def list_announcements(tag: Optional[str] = Query(None), db: Session = Depends(g
     return crud.get_announcements(db, tag=tag)
 
 
+# ── GitHub ────────────────────────────────────────────────
+
+@app.get("/api/github/{username}")
+async def get_github_profile(username: str):
+    result = await fetch_github_profile(username)
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
 # ── Devlogs ───────────────────────────────────────────────
 
 @app.post("/api/devlogs", response_model=DevlogResponse)
