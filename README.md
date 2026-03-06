@@ -6,7 +6,7 @@
 
 *No great project should die because you couldn't find a teammate.*
 
-[![Live](https://img.shields.io/badge/🌐_Live-dev--match.vercel.app-7c3aed?style=for-the-badge)](https://dev-match-one.vercel.app)
+[![Live](https://img.shields.io/badge/🌐_Live-dev--match.vercel.app-7c3aed?style=for-the-badge)](https://dev-match-tau.vercel.app)
 [![Backend](https://img.shields.io/badge/🔧_API-render.com-06d6a0?style=for-the-badge)](https://dev-match-qcjf.onrender.com/docs)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)

@@ -64,8 +64,8 @@ export default function Home() {
             </section>
 
             {/* Main Content Layout */}
-            <section className="main-content-section" style={{ padding: '0 0 80px', marginTop: '-20px' }}>
-                <div className="container" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '40px' }}>
+            <section className="main-content-section">
+                <div className="container home-grid">
 
                     {/* Left Column: Live Feed */}
                     <div className="feed-column">
@@ -73,33 +73,33 @@ export default function Home() {
                     </div>
 
                     {/* Right Column: Stats & Featured */}
-                    <div className="sidebar-column" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                    <div className="sidebar-column">
 
                         {/* Stats */}
-                        <div className="stats-sidebar glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Platform Stats 🚀</h3>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Developers</span>
-                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_developers}</span>
+                        <div className="stats-sidebar glass-card">
+                            <h3 className="sidebar-title">Platform Stats 🚀</h3>
+                            <div className="stat-row">
+                                <span className="stat-row-label">Developers</span>
+                                <span className="stat-row-value">{stats.total_developers}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Projects</span>
-                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_projects}</span>
+                            <div className="stat-row">
+                                <span className="stat-row-label">Projects</span>
+                                <span className="stat-row-value">{stats.total_projects}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Skills</span>
-                                <span style={{ fontWeight: 'bold', color: 'var(--accent-cyan)' }}>{stats.total_skills}</span>
+                            <div className="stat-row">
+                                <span className="stat-row-label">Skills</span>
+                                <span className="stat-row-value">{stats.total_skills}</span>
                             </div>
                         </div>
 
                         {/* Featured Devs */}
                         {featured.length > 0 && (
                             <div className="featured-sidebar">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                    <h3 style={{ fontSize: '1.2rem' }}>Featured ✨</h3>
-                                    <Link to="/discover" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: '0.8rem' }}>View all</Link>
+                                <div className="featured-header">
+                                    <h3 className="sidebar-title">Featured ✨</h3>
+                                    <Link to="/discover" className="btn btn-ghost btn-sm">View all</Link>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div className="featured-list">
                                     {featured.map((user) => (
                                         <ProfileCard key={user.id} user={user} />
                                     ))}

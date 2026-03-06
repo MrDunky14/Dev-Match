@@ -287,19 +287,100 @@
     margin-top: 8px;
 }
 
+/* ── Home Grid Layout ─────────────────────────────────── */
+.main-content-section {
+    padding: 0 0 80px;
+    margin-top: -20px;
+}
+
+.home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 40px;
+}
+
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.stats-sidebar {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.stat-row-label {
+    color: var(--text-secondary);
+}
+
+.stat-row-value {
+    font-weight: bold;
+    color: var(--accent-cyan);
+}
+
+.featured-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.featured-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 768px) {
+    .hero {
+        padding: 40px 0 30px;
+    }
+
     .hero-inner {
         grid-template-columns: 1fr;
-        gap: 40px;
+        gap: 24px;
     }
 
     .hero-title {
-        font-size: 2.2rem;
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.95rem;
     }
 
     .hero-visual {
         display: none;
+    }
+
+    .home-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .sidebar-column {
+        order: -1;
     }
 
     .stats-grid {
@@ -310,11 +391,24 @@
         grid-template-columns: 1fr;
     }
 
-    .hero-actions {
+    .hero-actions,
+    .cta-actions {
         flex-direction: column;
     }
 
-    .cta-actions {
-        flex-direction: column;
+    .cta-card {
+        padding: 32px 20px;
+    }
+
+    .cta-card h2 {
+        font-size: 1.4rem;
+    }
+
+    .featured-section {
+        padding: 30px 0;
+    }
+
+    .how-section {
+        padding: 30px 0;
     }
 }

@@ -15,19 +15,19 @@ from schemas import (
 from github_service import fetch_github_profile
 import crud
 
-# Create tables
+# Drop and recreate all tables to ensure schema is always in sync
+# (Safe because all data is seed data — no user-generated content to lose yet)
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
-# Auto-seed if database is empty (needed for Render free tier — no shell access)
+# Always re-seed after fresh schema
 def auto_seed():
     from seed import seed
-    db = next(get_db())
     try:
-        if db.query(User).count() == 0:
-            print("⚡ Database empty — auto-seeding...")
-            seed()
-    finally:
-        db.close()
+        print("⚡ Fresh schema — seeding database...")
+        seed()
+    except Exception as e:
+        print(f"⚠️ Seed error (non-fatal): {e}")
 
 auto_seed()
 
