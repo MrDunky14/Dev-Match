@@ -221,7 +221,7 @@ SAMPLE_DEVLOGS = [
     },
     {
         "author_id": 3,
-        "project_id": 6,
+        "project_id": 5,
         "content": "Working on the WebSocket logic for CodeCollab. Getting real-time cursor sync is tricky but it's finally working! 💻✨"
     },
     {
