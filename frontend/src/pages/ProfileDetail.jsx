@@ -1,9 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send } from 'lucide-react';
 import { getUser, sendMessage, getConversation, fetchGitHubProfile } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
 import SkillTag from '../components/SkillTag';
 import './ProfileDetail.css';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+};
 
 const AVAILABILITY_MAP = {
     'Looking for team': { emoji: '🟢', color: '#10b981' },
@@ -116,12 +135,21 @@ export default function ProfileDetail() {
     const commonSkills = mySkills.filter(s => theirSkills.includes(s));
 
     return (
-        <div className="page">
+        <motion.div
+            className="page"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+        >
             <div className="container">
                 <div className="profile-detail-layout">
                     {/* Profile Info */}
-                    <div className="profile-main glass-card slide-up">
-                        <div className="profile-hero">
+                    <motion.div
+                        className="profile-main glass-card"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.div variants={itemVariants} className="profile-hero">
                             <img
                                 src={user.avatar_url}
                                 alt={user.name}
@@ -135,33 +163,33 @@ export default function ProfileDetail() {
                                     {avail.emoji} {user.availability}
                                 </span>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Skill Match */}
                         {!isOwnProfile && currentUser && commonSkills.length > 0 && (
-                            <div className="skill-match-banner">
-                                🎯 <strong>{commonSkills.length} skill{commonSkills.length > 1 ? 's' : ''} in common:</strong> {commonSkills.join(', ')}
-                            </div>
+                            <motion.div variants={itemVariants} className="skill-match-banner">
+                                <Target size={16} style={{ marginRight: '6px', verticalAlign: 'text-bottom' }} /> <strong>{commonSkills.length} skill{commonSkills.length > 1 ? 's' : ''} in common:</strong> {commonSkills.join(', ')}
+                            </motion.div>
                         )}
 
                         {user.bio && (
-                            <div className="profile-bio-section">
+                            <motion.div variants={itemVariants} className="profile-bio-section">
                                 <h3>About</h3>
                                 <p>{user.bio}</p>
-                            </div>
+                            </motion.div>
                         )}
 
-                        <div className="profile-skills-section">
+                        <motion.div variants={itemVariants} className="profile-skills-section">
                             <h3>Skills</h3>
                             <div className="profile-skills-grid">
                                 {user.skills.map((s) => (
                                     <SkillTag key={s.id} skill={s.skill_name} />
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Quick Actions */}
-                        <div className="profile-actions">
+                        <motion.div variants={itemVariants} className="profile-actions">
                             {user.whatsapp_number && (
                                 <a
                                     href={`https://wa.me/91${user.whatsapp_number}`}
@@ -169,7 +197,7 @@ export default function ProfileDetail() {
                                     rel="noreferrer"
                                     className="btn btn-whatsapp"
                                 >
-                                    💬 Chat on WhatsApp
+                                    <MessageCircle size={16} /> Chat on WhatsApp
                                 </a>
                             )}
                             {user.github_url && (
@@ -179,15 +207,15 @@ export default function ProfileDetail() {
                                     rel="noreferrer"
                                     className="btn btn-secondary github-link"
                                 >
-                                    🔗 GitHub Profile
+                                    <Github size={16} /> GitHub Profile
                                 </a>
                             )}
-                        </div>
+                        </motion.div>
 
                         {/* GitHub Section */}
                         {user.github_username && (
-                            <div className="github-repos-section">
-                                <h3>📂 GitHub Activity</h3>
+                            <motion.div variants={itemVariants} className="github-repos-section">
+                                <h3><FolderGit2 size={18} className="badge-icon-left" /> GitHub Activity</h3>
                                 {ghLoading ? (
                                     <p className="text-muted">Loading GitHub data…</p>
                                 ) : ghData ? (
@@ -234,7 +262,7 @@ export default function ProfileDetail() {
                                                     >
                                                         <div className="repo-header">
                                                             <span className="repo-name">{repo.name}</span>
-                                                            {repo.stars > 0 && <span className="repo-stars">⭐ {repo.stars}</span>}
+                                                            {repo.stars > 0 && <span className="repo-stars"><Star size={12} className="badge-icon-left" />{repo.stars}</span>}
                                                         </div>
                                                         {repo.description && <p className="repo-desc">{repo.description}</p>}
                                                         {repo.language && <span className="repo-lang">{repo.language}</span>}
@@ -248,32 +276,37 @@ export default function ProfileDetail() {
                                 ) : (
                                     <p className="text-muted">Could not load GitHub data</p>
                                 )}
-                            </div>
+                            </motion.div>
                         )}
 
-                        <div className="profile-meta">
-                            <span>📧 {user.email}</span>
-                            <span>📅 Joined {new Date(user.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</span>
-                        </div>
-                    </div>
+                        <motion.div variants={itemVariants} className="profile-meta">
+                            <span><Mail size={16} /> {user.email}</span>
+                            <span><Calendar size={16} /> Joined {new Date(user.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</span>
+                        </motion.div>
+                    </motion.div>
 
                     {/* Message Panel or Own Profile */}
-                    <div className="message-panel glass-card slide-up">
+                    <motion.div
+                        className="message-panel glass-card"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: 0.2 }}
+                    >
                         {isOwnProfile ? (
                             <>
-                                <h2>👋 This is your profile</h2>
+                                <h2><MessageCircle size={24} className="title-icon offset-icon" /> This is your profile</h2>
                                 <p className="message-hint">This is how other SLRTCE students see you. Looking good!</p>
                             </>
                         ) : !currentUser ? (
                             <>
-                                <h2>💬 Want to connect?</h2>
+                                <h2><MessageCircle size={24} className="title-icon offset-icon" /> Want to connect?</h2>
                                 <p className="message-hint">
                                     <Link to="/create-profile" className="text-link">Create a profile</Link> to message {user.name.split(' ')[0]}
                                 </p>
                             </>
                         ) : (
                             <>
-                                <h2>💬 Message {user.name.split(' ')[0]}</h2>
+                                <h2><MessageCircle size={24} className="title-icon offset-icon" /> Message {user.name.split(' ')[0]}</h2>
                                 <p className="message-hint">
                                     Sending as <strong>{currentUser.name}</strong>
                                 </p>
@@ -294,33 +327,39 @@ export default function ProfileDetail() {
                                         className="btn btn-primary btn-lg send-btn"
                                         disabled={sending || !msgText.trim()}
                                     >
-                                        {sending ? 'Sending…' : 'Send Message 📨'}
+                                        {sending ? 'Sending…' : <><Send size={18} /> Send Message</>}
                                     </button>
                                 </form>
 
                                 {/* Conversation Thread */}
-                                {messages.length > 0 && (
-                                    <div className="conversation">
-                                        <h3>Conversation</h3>
-                                        <div className="msg-list">
-                                            {messages.map((msg) => (
-                                                <div
-                                                    key={msg.id}
-                                                    className={`msg-bubble ${msg.sender_id === currentUser.id ? 'msg-sent' : 'msg-received'}`}
-                                                >
-                                                    <span className="msg-sender">{msg.sender.name}</span>
-                                                    <p className="msg-text">{msg.content}</p>
-                                                    <span className="msg-time">{formatTime(msg.created_at)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <AnimatePresence>
+                                    {messages.length > 0 && (
+                                        <motion.div
+                                            className="conversation"
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                        >
+                                            <h3>Conversation</h3>
+                                            <div className="msg-list">
+                                                {messages.map((msg) => (
+                                                    <div
+                                                        key={msg.id}
+                                                        className={`msg-bubble ${msg.sender_id === currentUser.id ? 'msg-sent' : 'msg-received'}`}
+                                                    >
+                                                        <span className="msg-sender">{msg.sender.name}</span>
+                                                        <p className="msg-text">{msg.content}</p>
+                                                        <span className="msg-time">{formatTime(msg.created_at)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </>
                         )}
-                    </div>
+                    </motion.div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

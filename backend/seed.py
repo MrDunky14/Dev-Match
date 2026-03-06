@@ -282,5 +282,26 @@ def seed():
         db.close()
 
 
+
+def seed_devlogs_safe(db):
+    """Seed devlogs safely to the first available user to avoid FK violations."""
+    from models import User, Devlog
+    first_user = db.query(User).first()
+    if not first_user:
+        return
+        
+    safe_devlogs = [
+        "Just finished wiring up the authentication flow using JWTs! Next up: building the cart component. 🍔🚀",
+        "Working on the WebSocket logic for real-time sync. Getting cursor sync is tricky but it's finally working! 💻✨",
+        "Does anyone know a good library for interactive graphs in React? Trying to build an admin dashboard and Chart.js feels a bit clunky. Suggestions welcome! 📊",
+        "The smart contracts are now fully deployed on the Sepolia testnet! Huge milestone. Ready to start testing the frontend integration. ⛓️",
+        "Trained our first custom model! It can successfully extract keywords from PDF notes with 85% accuracy. 🧠📚"
+    ]
+    
+    for content in safe_devlogs:
+        db.add(Devlog(author_id=first_user.id, project_id=None, content=content))
+    db.commit()
+    print(f"✅ Seeded {len(safe_devlogs)} safe devlogs!")
+
 if __name__ == "__main__":
     seed()

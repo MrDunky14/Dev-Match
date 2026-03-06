@@ -1,9 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Search, Rocket, Code2, Users, FileEdit, Sparkles } from 'lucide-react';
 import { getStats, getUsers } from '../api';
 import ProfileCard from '../components/ProfileCard';
 import DevlogFeed from '../components/DevlogFeed';
 import './Home.css';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15,
+            delayChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+};
 
 export default function Home() {
     const [stats, setStats] = useState({ total_developers: 0, total_projects: 0, total_skills: 0, open_projects: 0 });
@@ -19,32 +41,51 @@ export default function Home() {
             {/* Hero */}
             <section className="hero">
                 <div className="container hero-inner">
-                    <div className="hero-content slide-up">
-                        <span className="hero-badge">⚡ SLRTCE Team Finder</span>
-                        <h1 className="hero-title">
+                    <motion.div
+                        className="hero-content"
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        <motion.span variants={itemVariants} className="hero-badge">
+                            <Sparkles size={16} className="badge-icon" /> SLRTCE Team Finder
+                        </motion.span>
+                        <motion.h1 variants={itemVariants} className="hero-title">
                             Find Your Perfect
                             <span className="hero-highlight"> Dev Partner</span>
-                        </h1>
-                        <p className="hero-subtitle">
+                        </motion.h1>
+                        <motion.p variants={itemVariants} className="hero-subtitle">
                             No great project should die because you couldn't find a teammate.
                             Discover developers by skill, semester, and department — all within SLRTCE.
-                        </p>
-                        <div className="hero-actions">
+                        </motion.p>
+                        <motion.div variants={itemVariants} className="hero-actions">
                             <Link to="/discover" className="btn btn-primary btn-lg">
-                                Browse Developers 🔍
+                                <Search size={20} /> Browse Developers
                             </Link>
                             <Link to="/projects" className="btn btn-secondary btn-lg">
-                                View Projects 🚀
+                                <Rocket size={20} /> View Projects
                             </Link>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
 
-                    <div className="hero-visual">
+                    <motion.div
+                        className="hero-visual"
+                        initial={{ opacity: 0, scale: 0.9, rotateY: 15 }}
+                        animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                        transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+                    >
                         <div className="hero-glow"></div>
-                        <div className="hero-orb hero-orb-1"></div>
-                        <div className="hero-orb hero-orb-2"></div>
-                        <div className="hero-orb hero-orb-3"></div>
-                        <div className="hero-code-card glass-card">
+                        <motion.div
+                            className="hero-orb hero-orb-1"
+                            animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
+                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                        <motion.div
+                            className="hero-orb hero-orb-2"
+                            animate={{ y: [0, 20, 0], x: [0, -15, 0] }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                        <motion.div className="hero-code-card glass-card" whileHover={{ y: -5, scale: 1.02 }}>
                             <div className="code-dots">
                                 <span></span><span></span><span></span>
                             </div>
@@ -56,10 +97,10 @@ export default function Home() {
     department: "CS"
   });
 
-// 🎯 3 matches found!`}
+// `}<span style={{ color: "#06d6a0" }}>✔</span>{` 3 matches found!`}
                             </pre>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -76,8 +117,13 @@ export default function Home() {
                     <div className="sidebar-column">
 
                         {/* Stats */}
-                        <div className="stats-sidebar glass-card">
-                            <h3 className="sidebar-title">Platform Stats 🚀</h3>
+                        <motion.div
+                            className="stats-sidebar glass-card"
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                        >
+                            <h3 className="sidebar-title"><Sparkles size={18} className="title-icon" /> Platform Stats</h3>
                             <div className="stat-row">
                                 <span className="stat-row-label">Developers</span>
                                 <span className="stat-row-value">{stats.total_developers}</span>
@@ -90,13 +136,18 @@ export default function Home() {
                                 <span className="stat-row-label">Skills</span>
                                 <span className="stat-row-value">{stats.total_skills}</span>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Featured Devs */}
                         {featured.length > 0 && (
-                            <div className="featured-sidebar">
+                            <motion.div
+                                className="featured-sidebar"
+                                initial={{ opacity: 0, x: 20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true, margin: "-100px" }}
+                            >
                                 <div className="featured-header">
-                                    <h3 className="sidebar-title">Featured ✨</h3>
+                                    <h3 className="sidebar-title"><Users size={18} className="title-icon" /> Featured</h3>
                                     <Link to="/discover" className="btn btn-ghost btn-sm">View all</Link>
                                 </div>
                                 <div className="featured-list">
@@ -104,7 +155,7 @@ export default function Home() {
                                         <ProfileCard key={user.id} user={user} />
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
                     </div>
                 </div>
@@ -113,42 +164,61 @@ export default function Home() {
             {/* How it works */}
             <section className="how-section">
                 <div className="container">
-                    <h2 className="section-title">How It Works</h2>
-                    <div className="steps-grid stagger-children">
-                        <div className="step-card glass-card">
-                            <span className="step-icon">📝</span>
+                    <motion.h2
+                        className="section-title"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        How It Works
+                    </motion.h2>
+                    <motion.div
+                        className="steps-grid"
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                    >
+                        <motion.div variants={itemVariants} className="step-card glass-card" whileHover={{ y: -5 }}>
+                            <span className="step-icon"><FileEdit size={32} /></span>
                             <h3>Create Your Profile</h3>
                             <p>List your tech stack, semester, and interests so others can find you.</p>
-                        </div>
-                        <div className="step-card glass-card">
-                            <span className="step-icon">🔍</span>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="step-card glass-card" whileHover={{ y: -5 }}>
+                            <span className="step-icon"><Search size={32} /></span>
                             <h3>Discover Teammates</h3>
                             <p>Browse and filter developers by skills, department, or semester.</p>
-                        </div>
-                        <div className="step-card glass-card">
-                            <span className="step-icon">🚀</span>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="step-card glass-card" whileHover={{ y: -5 }}>
+                            <span className="step-icon"><Code2 size={32} /></span>
                             <h3>Build Together</h3>
                             <p>Post your project idea or join one that excites you.</p>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 
             {/* CTA */}
             <section className="cta-section">
                 <div className="container">
-                    <div className="cta-card glass-card">
+                    <motion.div
+                        className="cta-card glass-card"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        viewport={{ once: true }}
+                    >
                         <h2>Ready to find your next teammate?</h2>
                         <p>Join Dev-Match today and never let a great idea go to waste.</p>
                         <div className="cta-actions">
                             <Link to="/create-profile" className="btn btn-primary btn-lg">
-                                Create Profile ✨
+                                <Sparkles size={20} /> Create Profile
                             </Link>
                             <Link to="/post-project" className="btn btn-secondary btn-lg">
-                                Post a Project 📋
+                                <FileEdit size={20} /> Post a Project
                             </Link>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
         </div>

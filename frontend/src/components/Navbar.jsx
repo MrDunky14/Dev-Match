@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useIdentity } from '../hooks/useIdentity';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Compass, Rocket, Pin, Trophy, Wrench, Menu, X, LogOut, User } from 'lucide-react';
 import './Navbar.css';
 
 const NAV_ITEMS = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/discover', label: 'Discover', icon: '🔍' },
-    { path: '/projects', label: 'Projects', icon: '🚀' },
-    { path: '/notices', label: 'Notices', icon: '📌' },
-    { path: '/leaderboard', label: 'Rankings', icon: '🏆' },
-    { path: '/toolkit', label: 'Toolkit', icon: '🔗' },
+    { path: '/', label: 'Home', icon: Home },
+    { path: '/discover', label: 'Discover', icon: Compass },
+    { path: '/projects', label: 'Projects', icon: Rocket },
+    { path: '/notices', label: 'Notices', icon: Pin },
+    { path: '/leaderboard', label: 'Rankings', icon: Trophy },
+    { path: '/toolkit', label: 'Toolkit', icon: Wrench },
 ];
 
 // Mobile bottom nav only shows 5 items to avoid overflow
@@ -30,13 +32,20 @@ export default function Navbar() {
 
                 {/* Desktop Nav — all items */}
                 <div className="navbar-links desktop-only">
-                    {NAV_ITEMS.map(({ path, label, icon }) => (
+                    {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
                         <Link
                             key={path}
                             to={path}
                             className={`nav-link ${location.pathname === path ? 'active' : ''}`}
                         >
-                            <span className="nav-icon">{icon}</span>
+                            {location.pathname === path && (
+                                <motion.div
+                                    layoutId="nav-pill"
+                                    className="nav-active-pill"
+                                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                                />
+                            )}
+                            <span className="nav-icon"><Icon size={18} strokeWidth={2.5} /></span>
                             <span className="nav-label">{label}</span>
                         </Link>
                     ))}
@@ -44,13 +53,20 @@ export default function Navbar() {
 
                 {/* Mobile Bottom Nav — 5 items max */}
                 <div className="navbar-links mobile-only">
-                    {MOBILE_NAV_ITEMS.map(({ path, label, icon }) => (
+                    {MOBILE_NAV_ITEMS.map(({ path, label, icon: Icon }) => (
                         <Link
                             key={path}
                             to={path}
                             className={`nav-link ${location.pathname === path ? 'active' : ''}`}
                         >
-                            <span className="nav-icon">{icon}</span>
+                            {location.pathname === path && (
+                                <motion.div
+                                    layoutId="mobile-nav-pill"
+                                    className="nav-active-pill-mobile"
+                                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                                />
+                            )}
+                            <span className="nav-icon"><Icon size={20} strokeWidth={2.5} /></span>
                             <span className="nav-label">{label}</span>
                         </Link>
                     ))}
@@ -67,30 +83,42 @@ export default function Navbar() {
                                 />
                                 <span className="nav-user-name">{currentUser.name.split(' ')[0]}</span>
                             </button>
-                            {showMenu && (
-                                <div className="user-dropdown glass-card" onClick={() => setShowMenu(false)}>
-                                    <Link to="/dashboard" className="dropdown-item">
-                                        📊 Dashboard
-                                    </Link>
-                                    <Link to={`/profile/${currentUser.id}`} className="dropdown-item">
-                                        👤 My Profile
-                                    </Link>
-                                    <Link to="/post-project" className="dropdown-item">
-                                        🚀 Post Project
-                                    </Link>
-                                    <Link to="/toolkit" className="dropdown-item mobile-only-item">
-                                        🔗 Toolkit
-                                    </Link>
-                                    <button className="dropdown-item dropdown-logout" onClick={logout}>
-                                        🚪 Log Out
-                                    </button>
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {showMenu && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        className="user-dropdown glass-card"
+                                        onClick={() => setShowMenu(false)}
+                                    >
+                                        <Link to={`/profile/${currentUser.id}`} className="dropdown-item">
+                                            <User size={16} /> My Profile
+                                        </Link>
+                                        <Link to="/post-project" className="dropdown-item">
+                                            <Rocket size={16} /> Post Project
+                                        </Link>
+                                        <Link to="/toolkit" className="dropdown-item mobile-only-item">
+                                            <Wrench size={16} /> Toolkit
+                                        </Link>
+                                        <div className="dropdown-divider"></div>
+                                        <button className="dropdown-item dropdown-logout" onClick={logout}>
+                                            <LogOut size={16} /> Log Out
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="btn btn-primary nav-cta">
-                            Login ✨
-                        </Link>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Link to="/toolkit" className="mobile-toolkit-icon mobile-only" title="Dev Toolkit">
+                                <Wrench size={20} />
+                            </Link>
+                            <Link to="/login" className="btn btn-primary nav-cta">
+                                Login ✨
+                            </Link>
+                        </div>
                     )}
                 </div>
             </div>

@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { getUsers, getSkills } from '../api';
 import ProfileCard from '../components/ProfileCard';
 import FilterPanel from '../components/FilterPanel';
 import './Discover.css';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
 
 export default function Discover() {
     const [users, setUsers] = useState([]);
@@ -58,26 +67,30 @@ export default function Discover() {
                     <main className="discover-main">
                         {loading ? (
                             <div className="card-grid">
-                                {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className="skeleton-card skeleton" style={{ height: 280 }} />
+                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                    <div key={i} className="skeleton" style={{ height: 350, borderRadius: 16 }}></div>
                                 ))}
                             </div>
                         ) : users.length === 0 ? (
-                            <div className="empty-state">
-                                <span className="empty-icon">🔍</span>
+                            <div className="empty-state glass-card">
                                 <h3>No developers found</h3>
-                                <p>Try adjusting your filters or search term</p>
+                                <p>Try adjusting your search or filters.</p>
                             </div>
                         ) : (
                             <>
                                 <div className="results-count">
                                     <span>{users.length} developer{users.length !== 1 ? 's' : ''} found</span>
                                 </div>
-                                <div className="card-grid stagger-children">
+                                <motion.div
+                                    className="card-grid stagger-children"
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                >
                                     {users.map((user) => (
                                         <ProfileCard key={user.id} user={user} />
                                     ))}
-                                </div>
+                                </motion.div>
                             </>
                         )}
                     </main>

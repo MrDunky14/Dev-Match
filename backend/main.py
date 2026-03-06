@@ -19,15 +19,18 @@ import crud
 Base.metadata.create_all(bind=engine)
 
 def auto_seed():
-    from seed import seed
+    from seed import seed, seed_devlogs_safe
     from database import SessionLocal
-    from models import User
+    from models import User, Devlog
     
     db = SessionLocal()
     try:
         if db.query(User).count() == 0:
             print("⚡ Database empty — auto-seeding...")
             seed()
+        elif db.query(Devlog).count() == 0:
+            print("⚡ Devlogs empty — inserting default devlogs safely...")
+            seed_devlogs_safe(db)
     except Exception as e:
         print(f"⚠️ Seed error (non-fatal): {e}")
     finally:

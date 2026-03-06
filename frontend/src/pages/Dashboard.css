@@ -269,3 +269,25 @@
         height: 48px;
     }
 }
+
+.badge-icon-left {
+    margin-right: 4px;
+    vertical-align: text-bottom;
+}
+
+.dash-item-row-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@media (min-width: 600px) {
+    .dash-item-row-layout {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .app-actions {
+        margin-top: 0;
+    }
+}

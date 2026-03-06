@@ -56,43 +56,54 @@
 .nav-link {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 8px 16px;
     border-radius: var(--radius-full);
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-decoration: none;
-    transition: all var(--transition-base);
+    transition: color var(--transition-base);
     position: relative;
+    z-index: 1;
 }
 
-.nav-link::after {
-    content: '';
+.nav-active-pill {
     position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
-    height: 2px;
-    background: var(--gradient-primary);
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    transform: translateX(-50%);
+    inset: 0;
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: var(--radius-full);
+    z-index: -1;
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
+}
+
+.nav-active-pill-mobile {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(124, 58, 237, 0.2), transparent 70%);
+    border-top: 2px solid var(--accent-purple);
+    z-index: -1;
 }
 
 .nav-link:hover {
     color: var(--text-primary);
-    background: var(--bg-hover);
 }
 
 .nav-link.active {
     color: var(--accent-purple-light);
-    background: rgba(124, 58, 237, 0.12);
 }
 
-.nav-link.active::after {
-    width: 60%;
-    box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
+.nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+}
+
+.nav-link:hover .nav-icon {
+    transform: translateY(-2px);
+    color: var(--accent-purple-light);
 }
 
 .nav-icon {
@@ -148,14 +159,14 @@
 
 .user-dropdown {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 12px);
     right: 0;
-    min-width: 180px;
+    min-width: 200px;
     padding: 8px;
     display: flex;
     flex-direction: column;
     z-index: 1000;
-    animation: fadeIn 0.15s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @keyframes fadeIn {
@@ -253,9 +264,26 @@
         display: none;
     }
 
-    .nav-cta,
     .nav-user-name {
         display: none;
+    }
+
+    .nav-cta {
+        padding: 6px 14px;
+        font-size: 0.85rem;
+    }
+
+    .mobile-toolkit-icon {
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        transition: color var(--transition-fast);
+    }
+
+    .mobile-toolkit-icon:hover {
+        color: var(--accent-cyan);
     }
 
     .mobile-only-item {

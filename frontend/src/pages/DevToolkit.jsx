@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Wrench } from 'lucide-react';
 import './DevToolkit.css';
 
 const TOOLKIT_CATEGORIES = [
@@ -92,15 +94,26 @@ export default function DevToolkit() {
     const [activeCategory, setActiveCategory] = useState(null);
 
     return (
-        <div className="toolkit-page">
+        <motion.div
+            className="toolkit-page"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+        >
             <div className="container">
-                <div className="toolkit-header slide-up">
-                    <h1 className="toolkit-title">🔗 Dev Toolkit</h1>
+                <motion.div
+                    className="toolkit-header"
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                    <h1 className="toolkit-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                        <Wrench size={36} color="var(--accent-cyan)" /> Dev Toolkit
+                    </h1>
                     <p className="toolkit-subtitle">
                         Your curated launchpad to the best developer tools on the internet.
                         <br />No clones, no fluff — just direct links to what actually works.
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="toolkit-filter">
                     <button
@@ -120,33 +133,33 @@ export default function DevToolkit() {
                     {TOOLKIT_CATEGORIES
                         .filter(cat => activeCategory === null || activeCategory === cat.id)
                         .map(category => (
-                        <div key={category.id} className="toolkit-category">
-                            <div className="category-header">
-                                <span className="category-emoji">{category.emoji}</span>
-                                <div>
-                                    <h2 className="category-title">{category.title}</h2>
-                                    <p className="category-desc">{category.description}</p>
+                            <div key={category.id} className="toolkit-category">
+                                <div className="category-header">
+                                    <span className="category-emoji">{category.emoji}</span>
+                                    <div>
+                                        <h2 className="category-title">{category.title}</h2>
+                                        <p className="category-desc">{category.description}</p>
+                                    </div>
+                                </div>
+                                <div className="links-grid">
+                                    {category.links.map(link => (
+                                        <a
+                                            key={link.name}
+                                            href={link.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="link-card glass-card"
+                                        >
+                                            <div className="link-name">{link.name}</div>
+                                            <div className="link-desc">{link.desc}</div>
+                                            <span className="link-arrow">↗</span>
+                                        </a>
+                                    ))}
                                 </div>
                             </div>
-                            <div className="links-grid">
-                                {category.links.map(link => (
-                                    <a
-                                        key={link.name}
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="link-card glass-card"
-                                    >
-                                        <div className="link-name">{link.name}</div>
-                                        <div className="link-desc">{link.desc}</div>
-                                        <span className="link-arrow">↗</span>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

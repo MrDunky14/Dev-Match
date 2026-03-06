@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Rocket, Lock, User, PlusCircle } from 'lucide-react';
 import { createProject } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
 import SkillTag from '../components/SkillTag';
@@ -93,44 +95,59 @@ export default function PostProject() {
 
     if (success) {
         return (
-            <div className="page">
+            <motion.div
+                className="page"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+            >
                 <div className="container">
-                    <div className="success-card glass-card slide-up">
-                        <span className="success-icon">🚀</span>
+                    <motion.div
+                        className="success-card glass-card"
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                        <Rocket size={48} className="success-icon" style={{ color: 'var(--accent-cyan)', marginBottom: 16 }} />
                         <h2>Project Posted!</h2>
                         <p>Your project is live on the Help Wanted board. Redirecting…</p>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     if (!currentUser) {
         return (
-            <div className="page">
+            <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="container">
-                    <div className="empty-state">
-                        <span className="empty-icon">🔒</span>
+                    <div className="empty-state glass-card slide-up">
+                        <Lock size={48} className="empty-icon" style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
                         <h3>Create a profile first</h3>
                         <p>You need a profile to post projects</p>
-                        <button className="btn btn-primary" onClick={() => navigate('/create-profile')}>
-                            Join SLRTCE ✨
+                        <button className="btn btn-primary" onClick={() => navigate('/create-profile')} style={{ marginTop: 16 }}>
+                            <PlusCircle size={16} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} /> Join SLRTCE
                         </button>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="page">
+        <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="container">
                 <div className="page-header">
-                    <h1>Post a Project</h1>
+                    <h1>Post a Project <Rocket size={28} className="title-icon offset-icon" /></h1>
                     <p>Posting as <strong>{currentUser.name}</strong> — describe your idea and find teammates</p>
                 </div>
 
-                <form className="project-form glass-card slide-up" onSubmit={handleSubmit}>
+                <motion.form
+                    className="project-form glass-card"
+                    onSubmit={handleSubmit}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 24 }}
+                >
                     {error && <div className="form-error">{error}</div>}
 
                     <div className="form-group">
@@ -190,17 +207,17 @@ export default function PostProject() {
                                     className={`role-picker-btn ${form.selectedRoles.includes(role) ? 'selected' : ''}`}
                                     onClick={() => toggleRole(role)}
                                 >
-                                    👤 {role}
+                                    <User size={14} className="badge-icon-left" /> {role}
                                 </button>
                             ))}
                         </div>
                     </div>
 
                     <button type="submit" className="btn btn-primary btn-lg submit-btn" disabled={submitting}>
-                        {submitting ? 'Posting…' : 'Post Project 🚀'}
+                        {submitting ? 'Posting…' : <><Rocket size={18} /> Post Project</>}
                     </button>
-                </form>
+                </motion.form>
             </div>
-        </div>
+        </motion.div>
     );
 }

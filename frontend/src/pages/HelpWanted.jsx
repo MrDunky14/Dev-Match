@@ -1,7 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Rocket, FileText, Search } from 'lucide-react';
 import { getProjects, getSkills } from '../api';
 import ProjectCard from '../components/ProjectCard';
 import './HelpWanted.css';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
 
 export default function HelpWanted() {
     const [projects, setProjects] = useState([]);
@@ -37,7 +47,7 @@ export default function HelpWanted() {
         <div className="page">
             <div className="container">
                 <div className="page-header">
-                    <h1>Help Wanted Board 🚀</h1>
+                    <h1>Help Wanted Board <Rocket size={28} className="title-icon offset-icon" /></h1>
                     <p>Find exciting projects that need your skills</p>
                 </div>
 
@@ -81,8 +91,8 @@ export default function HelpWanted() {
                         ))}
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="empty-state">
-                        <span className="empty-icon">📋</span>
+                    <div className="empty-state glass-card">
+                        <FileText size={48} className="empty-icon" style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
                         <h3>No projects found</h3>
                         <p>Be the first to post a project idea!</p>
                     </div>
@@ -91,11 +101,16 @@ export default function HelpWanted() {
                         <div className="results-count" style={{ marginTop: 24, marginBottom: 16 }}>
                             <span>{projects.length} project{projects.length !== 1 ? 's' : ''} found</span>
                         </div>
-                        <div className="card-grid stagger-children">
+                        <motion.div
+                            className="card-grid"
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
                             {projects.map((proj) => (
                                 <ProjectCard key={proj.id} project={proj} />
                             ))}
-                        </div>
+                        </motion.div>
                     </>
                 )}
             </div>

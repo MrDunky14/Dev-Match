@@ -1,10 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { getDevlogs, createDevlog, toggleReaction } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { Send, Activity } from 'lucide-react';
 import './DevlogFeed.css';
 
-const REACTION_EMOJIS = ['🔥', '👏', '🚀'];
+const REACTION_EMOJIS = ['🔥', '👏', '🚀']; // Kept emojis for reactions as they are standard
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+};
 
 export default function DevlogFeed() {
     const navigate = useNavigate();
@@ -73,7 +92,7 @@ export default function DevlogFeed() {
     return (
         <div className="devlog-feed">
             <div className="feed-header">
-                <h2 className="feed-title">⚡ Live Campus Feed</h2>
+                <h2 className="feed-title"><Activity size={20} className="title-icon" /> Live Campus Feed</h2>
                 <div className="pulse-indicator"></div>
             </div>
 
@@ -100,14 +119,19 @@ export default function DevlogFeed() {
                                 onClick={handlePost}
                                 disabled={isPosting || !newContent.trim()}
                             >
-                                {isPosting ? 'Posting...' : 'Post 🚀'}
+                                {isPosting ? 'Posting...' : <><Send size={14} /> Post</>}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="feed-list stagger-children">
+            <motion.div
+                className="feed-list"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
                 {loading ? (
                     [1, 2, 3].map(i => (
                         <div key={i} className="skeleton" style={{ height: 120, borderRadius: 16, marginBottom: 16 }}></div>
@@ -118,7 +142,7 @@ export default function DevlogFeed() {
                     </div>
                 ) : (
                     devlogs.map(log => (
-                        <div key={log.id} className="devlog-card glass-card">
+                        <motion.div key={log.id} variants={itemVariants} className="devlog-card glass-card">
                             <div className="devlog-header">
                                 <img
                                     src={log.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${log.author.name}`}
@@ -166,10 +190,10 @@ export default function DevlogFeed() {
                                     );
                                 })}
                             </div>
-                        </div>
+                        </motion.div>
                     ))
                 )}
-            </div>
+            </motion.div>
         </div>
     );
 }

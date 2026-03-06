@@ -21,3 +21,9 @@
         flex-direction: column;
     }
 }
+
+.offset-icon {
+    vertical-align: text-bottom;
+    margin-left: 8px;
+    color: var(--accent-purple-light);
+}

@@ -30,6 +30,9 @@
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .role-picker-btn:hover {
