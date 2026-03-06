@@ -28,7 +28,7 @@ class UserSkill(Base):
     __tablename__ = "user_skills"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     skill_name = Column(String(50), nullable=False)
 
     user = relationship("User", back_populates="skills")
@@ -40,7 +40,7 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     skills_needed = Column(String(500), default="")
     roles_needed = Column(String(500), default="")
     status = Column(String(20), default="open")
@@ -53,8 +53,8 @@ class Message(Base):
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -66,8 +66,8 @@ class Application(Base):
     __tablename__ = "applications"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    applicant_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    applicant_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     message = Column(Text, default="")
     status = Column(String(20), default="pending")  # pending, accepted, rejected
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -83,7 +83,7 @@ class Announcement(Base):
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     tag = Column(String(30), default="general")  # hackathon, workshop, team-needed, resource, general
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     author = relationship("User")
@@ -93,8 +93,8 @@ class Devlog(Base):
     __tablename__ = "devlogs"
 
     id = Column(Integer, primary_key=True, index=True)
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -107,8 +107,8 @@ class DevlogReaction(Base):
     __tablename__ = "devlog_reactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    devlog_id = Column(Integer, ForeignKey("devlogs.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    devlog_id = Column(Integer, ForeignKey("devlogs.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     emoji = Column(String(10), nullable=False)  # 🔥, 👏, 🚀
 
     devlog = relationship("Devlog", back_populates="reactions")

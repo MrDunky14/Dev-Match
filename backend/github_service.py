@@ -1,5 +1,6 @@
 """GitHub API service — fetches profiles, repos, and auto-detects skills."""
 import httpx
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -83,25 +84,50 @@ async def fetch_github_profile(username: str) -> dict:
         return cached
 
     async with httpx.AsyncClient() as client:
-        # Fetch user profile
-        user_resp = await client.get(
+        # Fetch user profile and repos concurrently to half the delay time
+        user_req = client.get(
             f"{GITHUB_API}/users/{username}",
             headers={"Accept": "application/vnd.github.v3+json"},
             timeout=10,
         )
-        if user_resp.status_code != 200:
-            return {"error": f"GitHub user '{username}' not found"}
-
-        user_data = user_resp.json()
-
-        # Fetch repos (sorted by updated, top 10)
-        repos_resp = await client.get(
+        repos_req = client.get(
             f"{GITHUB_API}/users/{username}/repos",
             params={"sort": "updated", "per_page": 10, "type": "owner"},
             headers={"Accept": "application/vnd.github.v3+json"},
             timeout=10,
         )
-        repos_data = repos_resp.json() if repos_resp.status_code == 200 else []
+        
+        user_resp, repos_resp = await asyncio.gather(user_req, repos_req, return_exceptions=True)
+        
+        # Prevent crashes if requests fail completely
+        if isinstance(user_resp, Exception) or user_resp.status_code == 403 or user_resp.status_code == 429:
+             print(f"⚠️ GitHub API rate limit hit for {username}")
+             # Return fallback profile data so the UI doesn't break
+             fallback_result = {
+                "username": username,
+                "name": username,
+                "avatar_url": f"https://api.dicebear.com/7.x/avataaars/svg?seed={username}",
+                "bio": "GitHub stats currently unavailable due to API rate limits.",
+                "public_repos": 0,
+                "followers": 0,
+                "repos": [],
+                "detected_skills": ["Rate Limited"],
+                "recently_active": False,
+                "language_breakdown": [],
+                "latest_commit": "Unavailable right now"
+             }
+             _set_cache(cache_key, fallback_result)
+             return fallback_result
+             
+        if user_resp.status_code != 200:
+            return {"error": f"GitHub user '{username}' not found"}
+
+        user_data = user_resp.json()
+
+        # Parse repos response
+        repos_data = []
+        if not isinstance(repos_resp, Exception) and repos_resp.status_code == 200:
+            repos_data = repos_resp.json()
 
         # Build repos list and detect skills
         all_languages = {}  # language -> repo count for breakdown

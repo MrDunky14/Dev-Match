@@ -15,19 +15,23 @@ from schemas import (
 from github_service import fetch_github_profile
 import crud
 
-# Drop and recreate all tables to ensure schema is always in sync
-# (Safe because all data is seed data — no user-generated content to lose yet)
-Base.metadata.drop_all(bind=engine)
+# Create tables
 Base.metadata.create_all(bind=engine)
 
-# Always re-seed after fresh schema
 def auto_seed():
     from seed import seed
+    from database import SessionLocal
+    from models import User
+    
+    db = SessionLocal()
     try:
-        print("⚡ Fresh schema — seeding database...")
-        seed()
+        if db.query(User).count() == 0:
+            print("⚡ Database empty — auto-seeding...")
+            seed()
     except Exception as e:
         print(f"⚠️ Seed error (non-fatal): {e}")
+    finally:
+        db.close()
 
 auto_seed()
 
