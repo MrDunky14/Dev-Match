@@ -10,6 +10,10 @@ const API = axios.create({
 export const getUsers = (params = {}) => API.get('/users', { params });
 export const getUser = (id) => API.get(`/users/${id}`);
 export const createUser = (data) => API.post('/users', data);
+export const getUserByEmail = (email) => API.get(`/users/by-email/${encodeURIComponent(email)}`);
+export const getUserProjects = (userId) => API.get(`/users/${userId}/projects`);
+export const getReceivedApplications = (userId) => API.get(`/users/${userId}/received-applications`);
+export const getMyApplications = (userId) => API.get(`/users/${userId}/my-applications`);
 
 // ── Projects ───────────────────────────────────────────
 export const getProjects = (params = {}) => API.get('/projects', { params });

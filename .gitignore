@@ -1,23 +1,44 @@
-# Python
+# ── Python ─────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.db
 .env
 venv/
+env/
+.venv/
 
-# Node
+# ── Node ───────────────────────────────
 node_modules/
 dist/
 .vite/
+*.log
+npm-debug.log*
 
-# OS
+# ── Build artifacts ────────────────────
+build/
+*.egg-info/
+*.egg
+
+# ── OS files ───────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
+*.lnk
 
-# IDE
+# ── IDE ────────────────────────────────
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-*
+.cursor/
+
+# ── Old website (analysis only) ───────
+find-teammates-website-main/
+
+# ── Misc ───────────────────────────────
+*.zip
+*.tar.gz
+*.rar
+.gemini/

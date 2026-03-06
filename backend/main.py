@@ -77,6 +77,52 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
+@app.get("/api/users/by-email/{email}", response_model=UserResponse)
+def get_user_by_email(email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@app.get("/api/users/{user_id}/projects", response_model=list[ProjectResponse])
+def get_user_projects(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Project).filter(Project.owner_id == user_id).order_by(Project.created_at.desc()).all()
+
+
+@app.get("/api/users/{user_id}/received-applications")
+def get_received_applications(user_id: int, db: Session = Depends(get_db)):
+    """Applications TO this user's projects."""
+    projects = db.query(Project).filter(Project.owner_id == user_id).all()
+    project_ids = [p.id for p in projects]
+    if not project_ids:
+        return []
+    apps = db.query(Application).filter(Application.project_id.in_(project_ids)).order_by(Application.created_at.desc()).all()
+    return [
+        {
+            "id": a.id, "status": a.status, "message": a.message,
+            "created_at": a.created_at,
+            "project": {"id": a.project.id, "title": a.project.title},
+            "applicant": {"id": a.applicant.id, "name": a.applicant.name, "avatar_url": a.applicant.avatar_url or ""},
+        }
+        for a in apps
+    ]
+
+
+@app.get("/api/users/{user_id}/my-applications")
+def get_my_applications(user_id: int, db: Session = Depends(get_db)):
+    """Applications BY this user."""
+    apps = db.query(Application).filter(Application.applicant_id == user_id).order_by(Application.created_at.desc()).all()
+    return [
+        {
+            "id": a.id, "status": a.status, "message": a.message,
+            "created_at": a.created_at,
+            "project": {"id": a.project.id, "title": a.project.title},
+        }
+        for a in apps
+    ]
+
+
 # ── Projects ─────────────────────────────────────────────
 
 @app.post("/api/projects", response_model=ProjectResponse)

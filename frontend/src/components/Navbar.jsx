@@ -12,6 +12,9 @@ const NAV_ITEMS = [
     { path: '/toolkit', label: 'Toolkit', icon: '🔗' },
 ];
 
+// Mobile bottom nav only shows 5 items to avoid overflow
+const MOBILE_NAV_ITEMS = NAV_ITEMS.slice(0, 5);
+
 export default function Navbar() {
     const location = useLocation();
     const { currentUser, logout } = useIdentity();
@@ -25,8 +28,23 @@ export default function Navbar() {
                     <span className="brand-text">Dev<span className="brand-accent">Match</span></span>
                 </Link>
 
-                <div className="navbar-links">
+                {/* Desktop Nav — all items */}
+                <div className="navbar-links desktop-only">
                     {NAV_ITEMS.map(({ path, label, icon }) => (
+                        <Link
+                            key={path}
+                            to={path}
+                            className={`nav-link ${location.pathname === path ? 'active' : ''}`}
+                        >
+                            <span className="nav-icon">{icon}</span>
+                            <span className="nav-label">{label}</span>
+                        </Link>
+                    ))}
+                </div>
+
+                {/* Mobile Bottom Nav — 5 items max */}
+                <div className="navbar-links mobile-only">
+                    {MOBILE_NAV_ITEMS.map(({ path, label, icon }) => (
                         <Link
                             key={path}
                             to={path}
@@ -51,11 +69,17 @@ export default function Navbar() {
                             </button>
                             {showMenu && (
                                 <div className="user-dropdown glass-card" onClick={() => setShowMenu(false)}>
+                                    <Link to="/dashboard" className="dropdown-item">
+                                        📊 Dashboard
+                                    </Link>
                                     <Link to={`/profile/${currentUser.id}`} className="dropdown-item">
                                         👤 My Profile
                                     </Link>
                                     <Link to="/post-project" className="dropdown-item">
                                         🚀 Post Project
+                                    </Link>
+                                    <Link to="/toolkit" className="dropdown-item mobile-only-item">
+                                        🔗 Toolkit
                                     </Link>
                                     <button className="dropdown-item dropdown-logout" onClick={logout}>
                                         🚪 Log Out
@@ -64,8 +88,8 @@ export default function Navbar() {
                             )}
                         </div>
                     ) : (
-                        <Link to="/create-profile" className="btn btn-primary nav-cta">
-                            Join SLRTCE ✨
+                        <Link to="/login" className="btn btn-primary nav-cta">
+                            Login ✨
                         </Link>
                     )}
                 </div>

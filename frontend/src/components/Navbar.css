@@ -208,36 +208,62 @@
     color: #ef4444;
 }
 
+/* Desktop/Mobile visibility */
+.mobile-only {
+    display: none;
+}
+
+.mobile-only-item {
+    display: none;
+}
+
 /* Mobile Bottom Nav */
 @media (max-width: 768px) {
-    .navbar-links {
+    .desktop-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: flex;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         z-index: 100;
-        display: flex;
         justify-content: space-around;
         background: rgba(10, 14, 26, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-top: 1px solid var(--border-subtle);
-        padding: 8px 0 env(safe-area-inset-bottom, 8px);
+        padding: 6px 0 env(safe-area-inset-bottom, 6px);
     }
 
-    .nav-link {
+    .mobile-only .nav-link {
         flex-direction: column;
         gap: 2px;
-        padding: 6px 12px;
-        font-size: 0.72rem;
+        padding: 6px 8px;
+        font-size: 0.68rem;
     }
 
-    .nav-icon {
-        font-size: 1.2rem;
+    .mobile-only .nav-icon {
+        font-size: 1.15rem;
+    }
+
+    .mobile-only .nav-link::after {
+        display: none;
     }
 
     .nav-cta,
     .nav-user-name {
         display: none;
+    }
+
+    .mobile-only-item {
+        display: flex;
+    }
+
+    /* Add bottom padding to pages to avoid content behind fixed nav */
+    body {
+        padding-bottom: 72px;
     }
 }

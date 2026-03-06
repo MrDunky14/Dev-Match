@@ -1,66 +1,86 @@
-# ⚡ Dev-Match — The Internal Team Finder
+<div align="center">
 
-> **Tinder for Developers inside the campus.** Find teammates by skill, semester, and department — so no great project idea dies because you couldn't find a partner.
+# ⚡ Dev-Match
 
-![Home](screenshots/home_page.png)
+### The Campus Team Finder That Actually Works
+
+*No great project should die because you couldn't find a teammate.*
+
+[![Live](https://img.shields.io/badge/🌐_Live-dev--match.vercel.app-7c3aed?style=for-the-badge)](https://dev-match-one.vercel.app)
+[![Backend](https://img.shields.io/badge/🔧_API-render.com-06d6a0?style=for-the-badge)](https://dev-match-qcjf.onrender.com/docs)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+
+</div>
 
 ---
 
-## 🚀 Features
+## 🎯 What is Dev-Match?
 
-- **Skill Profiles** — Students list their tech stack, bio, semester, and interests
-- **Help Wanted Board** — Post projects like *"Building a SaaS, need 1 UI/UX designer and 1 Firebase expert"*
-- **Filter System** — Search teammates by skill, semester, department, or name
-- **Profile Detail & Messaging** — View any developer's full profile and send them a direct message
-- **"I'm Interested" Flow** — Click on a project → land on the owner's profile → message them instantly
+Dev-Match is a **campus-specific developer matching platform** built exclusively for SLRTCE students (Semesters 1–8). It solves the "anyone knows React?" WhatsApp chaos by letting students discover teammates by **skill, semester, department**, and **real GitHub activity**.
+
+> **Key differentiator**: Every feature works end-to-end with a real PostgreSQL backend. No mock data, no `alert()` buttons, no feature bombing.
 
 ---
 
-## 🖼️ Screenshots
+## ✨ Features
 
-| Home | Discover | Projects | Profile & Messaging |
-|------|----------|----------|---------------------|
-| ![Home](screenshots/home_page.png) | ![Discover](screenshots/discover_page.png) | ![Projects](screenshots/projects_page.png) | ![Profile](screenshots/profile_with_message.png) |
+| Feature | Description |
+|---|---|
+| 🔍 **Smart Discovery** | Filter developers by skill, semester, department, availability |
+| 🔗 **GitHub Integration** | Auto-detect skills, language breakdown bars, latest commit display |
+| ⚡ **Live Devlog Feed** | Share what you're building, react with 🔥👏🚀 |
+| 🚀 **Project Board** | Post projects, apply with one click, manage applications |
+| 🏆 **Leaderboard** | Server-side XP computed from real activity |
+| 📊 **Dashboard** | Manage your projects, accept/reject applicants, track status |
+| 🔐 **Login System** | Email-based authentication for returning users |
+| 🔗 **Dev Toolkit** | Curated links to 28 tools across 7 categories (LeetCode, Figma, ChatGPT...) |
+| 📌 **Notice Board** | Campus announcements tagged by type |
+| 💬 **Direct Messaging** | In-app messaging + WhatsApp integration |
 
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Frontend | React, Vite, React Router, Axios |
-| Backend | Python, FastAPI, SQLAlchemy |
-| Database | SQLite |
-| Design | Glassmorphism, CSS Animations, Dark Theme |
+|---|---|
+| **Frontend** | React 19, Vite 7, React Router 7, Axios |
+| **Backend** | Python 3.11, FastAPI, SQLAlchemy, Pydantic |
+| **Database** | PostgreSQL (hosted on Render) |
+| **Design** | Dark Neon Glassmorphism, CSS Animations, Inter + Outfit fonts |
+| **Hosting** | Vercel (frontend) + Render (backend + DB) |
+| **External API** | GitHub REST API v3 |
+
+**Total frontend dependencies: 4** (React, React-DOM, React-Router, Axios)
 
 ---
 
-## ⚡ Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.9+
 - Node.js 18+
+- PostgreSQL (or use SQLite locally)
 
-### One-Command Start
+### Setup
 ```bash
-python start.py
-```
+# Clone
+git clone https://github.com/MrDunky14/Dev-Match.git
+cd Dev-Match
 
-### Manual Start
-```bash
-# Backend (Terminal 1)
+# Backend
 cd backend
 pip install -r requirements.txt
-python seed.py                    # Seed sample data
+python seed.py
 python -m uvicorn main:app --reload --port 8000
 
-# Frontend (Terminal 2)
+# Frontend (new terminal)
 cd frontend
 npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** 🎉
+Open [http://localhost:5173](http://localhost:5173) 🎉
 
 ---
 
@@ -69,20 +89,24 @@ Open **http://localhost:5173** 🎉
 ```
 Dev-Match/
 ├── backend/
-│   ├── main.py          # FastAPI app + routes
-│   ├── models.py        # User, Project, Message tables
-│   ├── schemas.py       # Pydantic validation models
+│   ├── main.py          # FastAPI app + all routes
+│   ├── models.py        # SQLAlchemy models (User, Project, Message, etc.)
+│   ├── schemas.py       # Pydantic request/response schemas
 │   ├── crud.py          # Database operations
-│   ├── database.py      # SQLite setup
-│   └── seed.py          # Sample data seeder
+│   ├── database.py      # DB connection config
+│   ├── github_service.py # GitHub API integration
+│   ├── seed.py          # Sample data seeder
+│   └── requirements.txt
 ├── frontend/
-│   └── src/
-│       ├── api.js       # Axios API client
-│       ├── components/  # Navbar, ProfileCard, ProjectCard, FilterPanel, SkillTag
-│       └── pages/       # Home, Discover, CreateProfile, HelpWanted, PostProject, ProfileDetail
-├── screenshots/         # App screenshots & demo recordings
-├── start.py             # Cross-platform launcher
-└── start.bat            # Windows launcher
+│   ├── src/
+│   │   ├── pages/       # Home, Discover, Login, Dashboard, etc.
+│   │   ├── components/  # Navbar, DevlogFeed, ProjectCard, etc.
+│   │   ├── hooks/       # useIdentity (auth context)
+│   │   ├── api.js       # API client
+│   │   ├── App.jsx      # Routes
+│   │   └── index.css    # Design system
+│   └── package.json
+└── README.md
 ```
 
 ---
@@ -90,102 +114,46 @@ Dev-Match/
 ## 📡 API Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users` | List/filter developers |
-| POST | `/api/users` | Register a new developer |
-| GET | `/api/users/:id` | Get developer profile |
-| GET | `/api/projects` | List/filter projects |
-| POST | `/api/projects` | Post a new project |
-| GET | `/api/skills` | All distinct skills |
-| GET | `/api/stats` | Platform statistics |
-| POST | `/api/messages` | Send a message |
-| GET | `/api/messages/:id` | Get user's messages |
-| GET | `/api/messages/:id1/:id2` | Get conversation |
+|---|---|---|
+| `GET` | `/api/users` | List users (with skill/semester/dept filters) |
+| `POST` | `/api/users` | Register new user |
+| `GET` | `/api/users/by-email/{email}` | Login by email |
+| `GET` | `/api/users/{id}/projects` | User's posted projects |
+| `GET` | `/api/users/{id}/received-applications` | Applications to user's projects |
+| `GET` | `/api/users/{id}/my-applications` | Applications by user |
+| `GET` | `/api/projects` | List projects |
+| `POST` | `/api/projects/{id}/apply` | Apply to project |
+| `PATCH` | `/api/applications/{id}` | Accept/reject application |
+| `GET` | `/api/github/{username}` | Fetch GitHub profile + skills |
+| `POST` | `/api/devlogs` | Post a devlog |
+| `GET` | `/api/devlogs` | List devlogs with reaction counts |
+| `POST` | `/api/devlogs/{id}/react` | Toggle emoji reaction |
+| `GET` | `/api/leaderboard` | Server-side XP leaderboard |
+
+Full interactive docs: [`/docs`](https://dev-match-qcjf.onrender.com/docs) (Swagger UI)
 
 ---
 
-## 🌐 Deployment
+## 🆚 Why Not Just Use WhatsApp?
 
-### Backend → [Render](https://render.com) (Free Tier)
-
-1. Go to [render.com](https://render.com) → **New +** → **Web Service**
-2. Connect your GitHub repo (`MrDunky14/Dev-Match`)
-3. Configure:
-
-   | Setting | Value |
-   |---------|-------|
-   | **Root Directory** | `backend` |
-   | **Runtime** | Python 3 |
-   | **Build Command** | `pip install -r requirements.txt` |
-   | **Start Command** | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
-
-4. Add environment variable:
-   ```
-   CORS_ORIGINS = https://your-frontend-url.vercel.app
-   ```
-5. Click **Deploy** → copy the URL (e.g. `https://dev-match-api.onrender.com`)
-
-> 💡 **Seed the database** after first deploy: go to Render Shell and run `python seed.py`
-
----
-
-### Frontend → [Vercel](https://vercel.com) (Free Tier)
-
-1. Go to [vercel.com](https://vercel.com) → **Add New Project**
-2. Import your GitHub repo (`MrDunky14/Dev-Match`)
-3. Configure:
-
-   | Setting | Value |
-   |---------|-------|
-   | **Root Directory** | `frontend` |
-   | **Framework Preset** | Vite |
-   | **Build Command** | `npm run build` |
-   | **Output Directory** | `dist` |
-
-4. Add environment variable:
-   ```
-   VITE_API_URL = https://dev-match-api.onrender.com/api
-   ```
-   *(Replace with your actual Render backend URL)*
-
-5. Click **Deploy** 🚀
-
-> ⚠️ After the frontend deploys, go back to Render and update `CORS_ORIGINS` with your Vercel URL.
-
----
-
-### Alternative: Deploy Both on Render
-
-If you prefer to keep everything on one platform:
-
-**Backend** — same as above
-
-**Frontend (Static Site):**
-1. Render → **New +** → **Static Site**
-2. Root Directory: `frontend`
-3. Build Command: `npm install && npm run build`
-4. Publish Directory: `dist`
-5. Add env var: `VITE_API_URL = https://your-backend.onrender.com/api`
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users` | List/filter developers |
-| POST | `/api/users` | Register a new developer |
-| GET | `/api/users/:id` | Get developer profile |
-| GET | `/api/projects` | List/filter projects |
-| POST | `/api/projects` | Post a new project |
-| GET | `/api/skills` | All distinct skills |
-| GET | `/api/stats` | Platform statistics |
-| POST | `/api/messages` | Send a message |
-| GET | `/api/messages/:id` | Get user's messages |
-| GET | `/api/messages/:id1/:id2` | Get conversation |
+| | WhatsApp Group | Dev-Match |
+|---|---|---|
+| Find React devs | Spam "anyone knows React?" | Filter by skill in 2 clicks |
+| See who's available | No idea | Availability badges |
+| GitHub verification | Ask them to send link | Auto-detected, language bars |
+| Manage applications | Chat threads get buried | Dashboard with Accept/Reject |
+| Track campus activity | Zero visibility | Live devlog feed + leaderboard |
 
 ---
 
 ## 👥 Team
 
-Built for hackathons by campus developers who believe no good idea should die for lack of a teammate.
+Built by SLRTCE students, for SLRTCE students.
+
+---
+
+<div align="center">
+
+**⚡ Stop searching WhatsApp groups. Start matching on Dev-Match.**
+
+</div>
