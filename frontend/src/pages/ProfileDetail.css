@@ -1,8 +1,8 @@
 /* ── Profile Detail ─────────────────────────────────────── */
 .profile-detail-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 40px;
     align-items: start;
 }
 
@@ -188,16 +188,19 @@
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .endorse-btn:hover {
     border-color: #7c3aed;
     color: #7c3aed;
     background: rgba(124, 58, 237, 0.08);
 }
+
 .endorse-btn.endorsed {
     background: rgba(124, 58, 237, 0.15);
     border-color: #7c3aed;
     color: #a78bfa;
 }
+
 .endorse-count {
     font-weight: 600;
 }

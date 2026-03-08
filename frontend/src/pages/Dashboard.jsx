@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Inbox, Send, Award, Activity, CheckCircle, XCircle, Search, Code2, Trophy, Users } from 'lucide-react';
+import { Rocket, Inbox, Send, Award, Activity, CheckCircle, XCircle, Search, Code2, Trophy, Users, BadgeCheck } from 'lucide-react';
 import { getUserProjects, getReceivedApplications, getMyApplications, updateApplication, getLeaderboard, updateProject } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
 import { useToast } from '../components/Toast';
@@ -94,7 +94,10 @@ export default function Dashboard() {
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         />
                         <div>
-                            <h1>Hey, {currentUser.name.split(' ')[0]}!</h1>
+                            <h1 className="flex items-center gap-2">
+                                Hey, {currentUser.name.split(' ')[0]}!
+                                {currentUser.is_verified && <BadgeCheck className="w-8 h-8 text-blue-500 mt-1" title="Verified Student" />}
+                            </h1>
                             <p className="dash-subtitle">Here's your DevMatch activity at a glance.</p>
                         </div>
                     </div>

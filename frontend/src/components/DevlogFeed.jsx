@@ -25,7 +25,7 @@ const itemVariants = {
     }
 };
 
-export default function DevlogFeed() {
+export default function DevlogFeed({ compact = false, limit = 20 }) {
     const navigate = useNavigate();
     const { currentUser } = useIdentity();
     const [devlogs, setDevlogs] = useState([]);
@@ -36,7 +36,7 @@ export default function DevlogFeed() {
     const [newContent, setNewContent] = useState('');
 
     const fetchDevlogs = () => {
-        getDevlogs(20)
+        getDevlogs(limit)
             .then(res => setDevlogs(res.data))
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -194,6 +194,14 @@ export default function DevlogFeed() {
                     ))
                 )}
             </motion.div>
+
+            {compact && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                    <button className="btn btn-ghost" onClick={() => navigate('/feed')}>
+                        View full feed &rarr;
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

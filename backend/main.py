@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect, text
 from typing import Optional
 import os
 
@@ -20,29 +21,28 @@ import crud
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-# Ensure columns added after initial creation are present (SQLite only)
+# Ensure columns added after initial creation are present
 def _migrate_columns():
-    db_url = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
-    if "sqlite" not in db_url:
-        return  # PostgreSQL handled by create_all()
-    import sqlite3, re
-    db_path_match = re.search(r'sqlite:///(.+)', db_url)
-    if not db_path_match:
-        return
-    db_path = db_path_match.group(1).lstrip("./")
     try:
-        conn = sqlite3.connect(db_path)
-        c = conn.cursor()
-        c.execute("PRAGMA table_info(projects)")
-        cols = [r[1] for r in c.fetchall()]
-        if 'demo_url' not in cols:
-            c.execute("ALTER TABLE projects ADD COLUMN demo_url TEXT DEFAULT ''")
-        if 'github_repo_url' not in cols:
-            c.execute("ALTER TABLE projects ADD COLUMN github_repo_url TEXT DEFAULT ''")
-        conn.commit()
-        conn.close()
-    except Exception:
-        pass
+        inspector = inspect(engine)
+        with engine.begin() as conn:
+            if inspector.has_table("projects"):
+                cols = [c['name'] for c in inspector.get_columns("projects")]
+                if 'demo_url' not in cols:
+                    conn.execute(text("ALTER TABLE projects ADD COLUMN demo_url VARCHAR DEFAULT ''"))
+                if 'github_repo_url' not in cols:
+                    conn.execute(text("ALTER TABLE projects ADD COLUMN github_repo_url VARCHAR DEFAULT ''"))
+                    
+            if inspector.has_table("users"):
+                user_cols = [c['name'] for c in inspector.get_columns("users")]
+                if 'is_verified' not in user_cols:
+                    db_url = os.getenv("DATABASE_URL", "")
+                    if "postgres" in db_url:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE"))
+                    else:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0"))
+    except Exception as e:
+        print("Migration error:", e)
 
 _migrate_columns()
 
@@ -86,7 +86,11 @@ app.add_middleware(
 
 @app.post("/api/auth/register", response_model=TokenResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == user.email.strip().lower()).first()
+    email = user.email.strip().lower()
+    if not email.endswith("@slrtce.in"):
+        raise HTTPException(status_code=400, detail="Only @slrtce.in email addresses are allowed.")
+        
+    existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     db_user = crud.create_user(db, user)
@@ -99,7 +103,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email.strip().lower()).first()
+    email = req.email.strip().lower()
+    if not email.endswith("@slrtce.in"):
+        raise HTTPException(status_code=401, detail="Only @slrtce.in email addresses are allowed.")
+
+    user = db.query(User).filter(User.email == email).first()
     if not user or not user.password_hash:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not verify_password(req.password, user.password_hash):
@@ -120,7 +128,11 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @app.post("/api/users", response_model=UserResponse)
 def register_user_legacy(user: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == user.email.strip().lower()).first()
+    email = user.email.strip().lower()
+    if not email.endswith("@slrtce.in"):
+        raise HTTPException(status_code=400, detail="Only @slrtce.in email addresses are allowed.")
+
+    existing = db.query(User).filter(User.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db, user)
@@ -345,6 +357,75 @@ async def get_github_profile(username: str):
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
     return result
+
+import httpx
+
+@app.post("/api/github/verify")
+async def verify_github_account(code: str = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    client_id = os.getenv("GITHUB_CLIENT_ID")
+    client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+    
+    if not client_id or not client_secret:
+        raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
+
+    async with httpx.AsyncClient() as client:
+        # 1. Exchange OAuth code for access token
+        token_resp = await client.post(
+            "https://github.com/login/oauth/access_token",
+            json={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "code": code
+            },
+            headers={"Accept": "application/json"}
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            # Check if the error is due to a reused code, and if the user is already verified
+            error = token_data.get("error")
+            if error == "bad_verification_code" and current_user.is_verified:
+                # The code was already used (likely React Strict Mode double-firing), but user is verified anyway
+                return {"status": "success", "user": UserResponse.model_validate(current_user)}
+                
+            raise HTTPException(status_code=400, detail="Invalid OAuth code or code already used")
+
+        # 2. Get user emails from GitHub
+        emails_resp = await client.get(
+            "https://api.github.com/user/emails",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        emails = emails_resp.json()
+        
+        # Verify one of the authenticated GitHub emails matches @slrtce.in
+        has_slrtce_email = any(e.get("email", "").endswith("@slrtce.in") and e.get("verified") for e in emails)
+        
+        if not has_slrtce_email:
+            raise HTTPException(status_code=403, detail="Your GitHub account does not have a verified @slrtce.in email. Please add your college email to your GitHub profile and try again.")
+            
+        # 3. Get the GitHub profile username
+        user_resp = await client.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        github_user = user_resp.json()
+        github_username = github_user.get("login")
+        
+        if not github_username:
+            raise HTTPException(status_code=400, detail="Could not retrieve GitHub username")
+            
+        # 4. Save to database: mark verified and securely store the linked username
+        current_user.is_verified = True
+        current_user.github_username = github_username
+        current_user.github_url = github_user.get("html_url", "")
+        if not current_user.avatar_url:
+            current_user.avatar_url = github_user.get("avatar_url", "")
+            
+        db.commit()
+        db.refresh(current_user)
+        
+        return {"status": "success", "user": UserResponse.model_validate(current_user)}
 
 
 # ── Applications ──────────────────────────────────────────

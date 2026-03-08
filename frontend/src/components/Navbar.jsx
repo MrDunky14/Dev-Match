@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useIdentity } from '../hooks/useIdentity';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Compass, Rocket, Pin, Trophy, Wrench, Menu, X, LogOut, User, LayoutDashboard, Bell, Edit, Award } from 'lucide-react';
+import { Home, Compass, Rocket, Pin, Trophy, Wrench, Menu, X, LogOut, User, LayoutDashboard, Bell, Edit, Award, BadgeCheck } from 'lucide-react';
 import { getNotificationCount, getNotifications, markAllNotificationsRead, markNotificationRead } from '../api';
 import './Navbar.css';
 
@@ -175,12 +175,17 @@ export default function Navbar() {
                                 {/* User Menu */}
                                 <div className="user-menu-wrapper">
                                     <button className="user-menu-trigger" onClick={() => setShowMenu(!showMenu)}>
-                                        <img
-                                            src={currentUser.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`}
-                                            alt={currentUser.name}
-                                            className="nav-user-avatar"
-                                        />
-                                        <span className="nav-user-name">{currentUser.name.split(' ')[0]}</span>
+                                        <div style={{ position: 'relative', display: 'flex' }}>
+                                            <img
+                                                src={currentUser.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`}
+                                                alt={currentUser.name}
+                                                className="nav-user-avatar"
+                                            />
+                                            {currentUser.is_verified && <BadgeCheck className="verified-avatar-badge" style={{ bottom: '-4px', right: '-4px', width: '1rem', height: '1rem', boxShadow: '0 0 0 2px rgba(11, 15, 25, 0.95)' }} />}
+                                        </div>
+                                        <span className="nav-user-name flex items-center gap-1">
+                                            {currentUser.name.split(' ')[0]}
+                                        </span>
                                     </button>
                                     <AnimatePresence>
                                         {showMenu && (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy } from 'lucide-react';
+import { Trophy, BadgeCheck } from 'lucide-react';
 import { getLeaderboard } from '../api';
 import SkillTag from '../components/SkillTag';
 import './Leaderboard.css';
@@ -87,7 +87,10 @@ export default function Leaderboard() {
                                     className="lb-avatar"
                                 />
                                 <div className="lb-info">
-                                    <h3 className="lb-name">{user.name}</h3>
+                                    <h3 className="lb-name flex items-center gap-1">
+                                        {user.name}
+                                        {user.is_verified && <BadgeCheck className="w-4 h-4 text-blue-500" title="Verified Student" />}
+                                    </h3>
                                     <span className="lb-dept">{user.department} • Sem {user.semester}</span>
                                     {user.rank_title && <span className={`rank-title rank-${user.rank_title.toLowerCase()}`}>{user.rank_title}</span>}
                                 </div>

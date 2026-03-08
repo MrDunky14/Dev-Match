@@ -103,6 +103,7 @@ class UserResponse(BaseModel):
     github_username: str
     whatsapp_number: str
     availability: str
+    is_verified: bool = False
     created_at: datetime
     skills: list[SkillResponse] = []
 
@@ -315,6 +316,7 @@ class LeaderboardEntry(BaseModel):
     skills: list[str]
     xp: int
     github_username: str
+    is_verified: bool = False
     rank_title: str = "Novice"
 
 

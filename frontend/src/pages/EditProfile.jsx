@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateUser } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
-import { useToast } from '../components/Toast';
 import SkillTag from '../components/SkillTag';
+import { useToast } from '../components/Toast';
+import { BadgeCheck, Github } from 'lucide-react';
 import './EditProfile.css';
 
 const POPULAR_SKILLS = [
@@ -205,27 +206,41 @@ export default function EditProfile() {
                         />
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>GitHub URL</label>
-                            <input
-                                name="github_url"
-                                className="form-input"
-                                placeholder="https://github.com/yourusername"
-                                value={form.github_url}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>GitHub Username</label>
-                            <input
-                                name="github_username"
-                                className="form-input"
-                                placeholder="yourusername"
-                                value={form.github_username}
-                                onChange={handleChange}
-                            />
-                        </div>
+                    <div className="form-group github-connect-section">
+                        <label>Developer Identity</label>
+                        {currentUser?.is_verified ? (
+                            <div className="verified-status bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50 flex items-center gap-3">
+                                <BadgeCheck className="w-6 h-6 text-blue-500" />
+                                <div>
+                                    <div className="font-medium text-white flex items-center gap-2">
+                                        Verified Student
+                                        <a href={currentUser.github_url} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white transition-colors">
+                                            ({currentUser.github_username})
+                                        </a>
+                                    </div>
+                                    <div className="text-sm text-zinc-400">Your GitHub account is linked.</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="unverified-status bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50">
+                                <p className="text-zinc-400 mb-4 text-sm">
+                                    Link your GitHub account to verify your student status and get a verified badge on your profile.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+                                        const redirectUri = `${window.location.origin}/github/callback`;
+                                        const scope = 'user:email';
+                                        window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+                                    }}
+                                    className="github-verify-btn"
+                                >
+                                    <Github className="w-5 h-5" />
+                                    Verify with GitHub
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-group">

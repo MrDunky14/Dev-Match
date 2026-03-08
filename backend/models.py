@@ -11,6 +11,7 @@ class User(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(150), unique=True, nullable=False)
     password_hash = Column(String(200), nullable=False, default="")
+    is_verified = Column(Boolean, default=False)
     bio = Column(Text, default="")
     semester = Column(Integer, nullable=False)
     department = Column(String(100), nullable=False)

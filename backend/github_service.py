@@ -107,9 +107,9 @@ async def fetch_github_profile(username: str) -> dict:
         
         user_resp, repos_resp = await asyncio.gather(user_req, repos_req, return_exceptions=True)
         
-        # Prevent crashes if requests fail completely
-        if isinstance(user_resp, Exception) or user_resp.status_code == 403 or user_resp.status_code == 429:
-             print(f"⚠️ GitHub API rate limit hit for {username}")
+        # Prevent crashes if requests fail completely or hit token/rate limit issues (401, 403, 429)
+        if isinstance(user_resp, Exception) or user_resp.status_code in (401, 403, 429):
+             print(f"⚠️ GitHub API issue for {username}: HTTP {getattr(user_resp, 'status_code', 'Network Error')}")
              # Return fallback profile data so the UI doesn't break
              fallback_result = {
                 "username": username,

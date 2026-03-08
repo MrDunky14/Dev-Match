@@ -16,7 +16,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import EditProfile from './pages/EditProfile';
 import Showcase from './pages/Showcase';
+import GitHubCallback from './pages/GitHubCallback';
 import NotFound from './pages/NotFound';
+import Feed from './pages/Feed';
 
 export default function App() {
   return (
@@ -38,6 +40,8 @@ export default function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/toolkit" element={<DevToolkit />} />
             <Route path="/showcase" element={<Showcase />} />
+            <Route path="/feed" element={<Feed />} />
+            <Route path="/github/callback" element={<GitHubCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

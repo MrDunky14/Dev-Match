@@ -114,7 +114,7 @@ export default function Home() {
 
                     {/* Left Column: Live Feed */}
                     <div className="feed-column">
-                        <DevlogFeed />
+                        <DevlogFeed compact={true} limit={3} />
                     </div>
 
                     {/* Right Column: Stats & Featured */}
@@ -226,28 +226,34 @@ export default function Home() {
                             </motion.div>
                         )}
 
-                        {/* Featured Devs */}
-                        {featured.length > 0 && (
-                            <motion.div
-                                className="featured-sidebar"
-                                initial={{ opacity: 0, x: 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                            >
-                                <div className="featured-header">
-                                    <h3 className="sidebar-title"><Users size={18} className="title-icon" /> Featured</h3>
-                                    <Link to="/discover" className="btn btn-ghost btn-sm">View all</Link>
-                                </div>
-                                <div className="featured-list">
-                                    {featured.map((user) => (
-                                        <ProfileCard key={user.id} user={user} currentUser={currentUser} />
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 </div>
             </section>
+
+            {/* Featured Devs (Full Width Section) */}
+            {featured.length > 0 && (
+                <section className="featured-section">
+                    <div className="container">
+                        <div className="section-header">
+                            <h2>Featured Developers</h2>
+                            <Link to="/discover" className="btn btn-ghost">View all developers</Link>
+                        </div>
+                        <motion.div
+                            className="card-grid"
+                            variants={containerVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-50px" }}
+                        >
+                            {featured.map((user) => (
+                                <motion.div key={user.id} variants={itemVariants}>
+                                    <ProfileCard user={user} currentUser={currentUser} />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </div>
+                </section>
+            )}
 
             {/* How it works */}
             <section className="how-section">

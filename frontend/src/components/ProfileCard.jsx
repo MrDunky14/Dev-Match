@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Github, User, Zap } from 'lucide-react';
+import { Github, User, Zap, BadgeCheck } from 'lucide-react';
 import SkillTag from './SkillTag';
 import './ProfileCard.css';
 
@@ -24,13 +24,15 @@ export default function ProfileCard({ user, currentUser }) {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
             <div className="profile-card-header">
-                <div className="profile-avatar-wrapper">
+                <div className="profile-avatar-wrapper" style={{ position: 'relative', display: 'flex' }}>
                     <img src={avatarUrl} alt={user.name} className="profile-avatar" />
-                    <span className="profile-semester">Sem {user.semester}</span>
+                    {user.is_verified && <BadgeCheck className="verified-avatar-badge" title="Verified Student" style={{ bottom: '-4px', right: '-4px', boxShadow: '0 0 0 2px var(--bg-card)' }} />}
                 </div>
                 <div className="profile-info">
-                    <h3 className="profile-name">{user.name}</h3>
-                    <span className="profile-dept">{user.department}</span>
+                    <h3 className="profile-name flex items-center">
+                        {user.name}
+                    </h3>
+                    <span className="profile-dept">Sem {user.semester} &bull; {user.department}</span>
                     {user.availability && (
                         <span className={`card-availability ${user.availability === 'Looking for team' ? 'avail-green' : user.availability === 'Open to collaborate' ? 'avail-blue' : user.availability === 'Busy with project' ? 'avail-yellow' : 'avail-red'}`}>
                             {user.availability}

@@ -117,13 +117,16 @@ body::before {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(124, 58, 237, 0.3);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(124, 58, 237, 0.5);
 }
@@ -278,6 +281,43 @@ h6 {
 }
 
 /* ── Skill Tags ────────────────────────────────────────── */
+.skill-tag.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── Global Verified Badge Style ─────────────────── */
+.verified-badge-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #1d9bf0;
+  /* Twitter/Premium Blue */
+  flex-shrink: 0;
+  vertical-align: middle;
+  transform: translateY(-1px);
+}
+
+.verified-avatar-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border-radius: 50%;
+  color: #1d9bf0;
+  /* create the cutout effect */
+  box-shadow: 0 0 0 2px var(--bg-card);
+  /* Will be overridden by specific contexts if needed */
+  z-index: 10;
+}
+
 .skill-tag {
   display: inline-flex;
   align-items: center;

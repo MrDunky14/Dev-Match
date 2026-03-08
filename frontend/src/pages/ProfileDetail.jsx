@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send, ThumbsUp } from 'lucide-react';
+import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send, ThumbsUp, BadgeCheck } from 'lucide-react';
 import { getUser, sendMessage, getConversation, fetchGitHubProfile, getCompatibility, getEndorsements, endorseSkill } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
 import { useToast } from '../components/Toast';
@@ -200,13 +200,18 @@ export default function ProfileDetail() {
                         animate="visible"
                     >
                         <motion.div variants={itemVariants} className="profile-hero">
-                            <img
-                                src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-                                alt={user.name}
-                                className="profile-avatar-lg"
-                            />
+                            <div className="profile-avatar-wrapper" style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+                                <img
+                                    src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+                                    alt={user.name}
+                                    className="profile-avatar-lg"
+                                />
+                                {user.is_verified && <BadgeCheck className="verified-avatar-badge" title="Verified Student" style={{ width: '2rem', height: '2rem', bottom: '2px', right: '2px', boxShadow: '0 0 0 4px var(--bg-card)' }} />}
+                            </div>
                             <div className="profile-identity">
-                                <h1>{user.name}</h1>
+                                <h1 className="flex items-center gap-2 justify-center">
+                                    {user.name}
+                                </h1>
                                 <span className="profile-dept">{user.department}</span>
                                 <span className="profile-sem">Semester {user.semester}</span>
                                 <span className="availability-badge" style={{ color: avail.color, borderColor: avail.color }}>
