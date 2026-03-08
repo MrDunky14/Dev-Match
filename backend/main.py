@@ -75,6 +75,7 @@ origins = [o.strip() for o in os.getenv("CORS_ORIGINS", _default_origins).split(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
