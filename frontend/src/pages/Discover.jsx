@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { getUsers, getSkills } from '../api';
+import { useIdentity } from '../hooks/useIdentity';
 import ProfileCard from '../components/ProfileCard';
 import FilterPanel from '../components/FilterPanel';
 import './Discover.css';
@@ -14,6 +15,7 @@ const containerVariants = {
 };
 
 export default function Discover() {
+    const { currentUser } = useIdentity();
     const [users, setUsers] = useState([]);
     const [skills, setSkills] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ export default function Discover() {
                                     animate="visible"
                                 >
                                     {users.map((user) => (
-                                        <ProfileCard key={user.id} user={user} />
+                                        <ProfileCard key={user.id} user={user} currentUser={currentUser} />
                                     ))}
                                 </motion.div>
                             </>

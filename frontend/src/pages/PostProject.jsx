@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Rocket, Lock, User, PlusCircle } from 'lucide-react';
+import { Rocket, User, Link2, Github } from 'lucide-react';
 import { createProject } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from '../components/Toast';
 import SkillTag from '../components/SkillTag';
 import './PostProject.css';
 
@@ -24,11 +25,14 @@ const COMMON_ROLES = [
 export default function PostProject() {
     const navigate = useNavigate();
     const { currentUser } = useIdentity();
+    const toast = useToast();
     const [form, setForm] = useState({
         title: '',
         description: '',
         selectedSkills: [],
         selectedRoles: [],
+        demo_url: '',
+        github_repo_url: '',
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -83,8 +87,11 @@ export default function PostProject() {
                 owner_id: currentUser.id,
                 skills_needed: form.selectedSkills.join(', '),
                 roles_needed: form.selectedRoles.join(', '),
+                demo_url: form.demo_url,
+                github_repo_url: form.github_repo_url,
             });
             setSuccess(true);
+            toast.success('Project posted successfully!');
             setTimeout(() => navigate('/projects'), 2000);
         } catch (err) {
             setError(err.response?.data?.detail || 'Something went wrong');
@@ -111,23 +118,6 @@ export default function PostProject() {
                         <h2>Project Posted!</h2>
                         <p>Your project is live on the Help Wanted board. Redirecting…</p>
                     </motion.div>
-                </div>
-            </motion.div>
-        );
-    }
-
-    if (!currentUser) {
-        return (
-            <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="container">
-                    <div className="empty-state glass-card slide-up">
-                        <Lock size={48} className="empty-icon" style={{ color: 'var(--text-muted)', marginBottom: 16 }} />
-                        <h3>Create a profile first</h3>
-                        <p>You need a profile to post projects</p>
-                        <button className="btn btn-primary" onClick={() => navigate('/create-profile')} style={{ marginTop: 16 }}>
-                            <PlusCircle size={16} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} /> Join SLRTCE
-                        </button>
-                    </div>
                 </div>
             </motion.div>
         );
@@ -210,6 +200,29 @@ export default function PostProject() {
                                     <User size={14} className="badge-icon-left" /> {role}
                                 </button>
                             ))}
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label><Github size={16} className="badge-icon-left" /> GitHub Repo URL</label>
+                            <input
+                                name="github_repo_url"
+                                className="form-input"
+                                placeholder="https://github.com/you/project"
+                                value={form.github_repo_url}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label><Link2 size={16} className="badge-icon-left" /> Live Demo URL</label>
+                            <input
+                                name="demo_url"
+                                className="form-input"
+                                placeholder="https://your-project.vercel.app"
+                                value={form.demo_url}
+                                onChange={handleChange}
+                            />
                         </div>
                     </div>
 

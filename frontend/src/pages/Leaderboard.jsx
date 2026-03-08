@@ -89,6 +89,7 @@ export default function Leaderboard() {
                                 <div className="lb-info">
                                     <h3 className="lb-name">{user.name}</h3>
                                     <span className="lb-dept">{user.department} • Sem {user.semester}</span>
+                                    {user.rank_title && <span className={`rank-title rank-${user.rank_title.toLowerCase()}`}>{user.rank_title}</span>}
                                 </div>
 
                                 <div className="lb-skills">
@@ -105,7 +106,6 @@ export default function Leaderboard() {
                                         <span className="score-value">{user.xp}</span>
                                         <span className="score-label">XP</span>
                                     </div>
-                                    <div className="score-glow"></div>
                                 </div>
                             </motion.div>
                         ))}

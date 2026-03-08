@@ -5,18 +5,46 @@ from typing import Optional
 import os
 
 from database import engine, get_db, Base
-from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction, Notification
 from schemas import (
-    UserCreate, UserResponse, ProjectCreate, ProjectResponse,
+    UserCreate, UserUpdate, UserResponse, ProjectCreate, ProjectUpdate, ProjectResponse,
     MessageCreate, MessageResponse, ApplicationCreate, ApplicationResponse,
     AnnouncementCreate, AnnouncementResponse, DevlogCreate, DevlogResponse,
-    ReactionCreate, ReactionCount, LeaderboardEntry,
+    ReactionCreate, ReactionCount, LeaderboardEntry, LoginRequest, TokenResponse,
+    NotificationResponse, CompatibilityResponse, EndorsementCreate, EndorsementResponse,
 )
+from auth import hash_password, verify_password, create_access_token, get_current_user, get_optional_user
 from github_service import fetch_github_profile
 import crud
 
 # Create tables
 Base.metadata.create_all(bind=engine)
+
+# Ensure columns added after initial creation are present (SQLite only)
+def _migrate_columns():
+    db_url = os.getenv("DATABASE_URL", "sqlite:///./sql_app.db")
+    if "sqlite" not in db_url:
+        return  # PostgreSQL handled by create_all()
+    import sqlite3, re
+    db_path_match = re.search(r'sqlite:///(.+)', db_url)
+    if not db_path_match:
+        return
+    db_path = db_path_match.group(1).lstrip("./")
+    try:
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute("PRAGMA table_info(projects)")
+        cols = [r[1] for r in c.fetchall()]
+        if 'demo_url' not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN demo_url TEXT DEFAULT ''")
+        if 'github_repo_url' not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN github_repo_url TEXT DEFAULT ''")
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+_migrate_columns()
 
 def auto_seed():
     from seed import seed, seed_devlogs_safe
@@ -38,13 +66,11 @@ def auto_seed():
 
 auto_seed()
 
-app = FastAPI(title="Dev-Match API", version="1.0.0")
+app = FastAPI(title="Dev-Match API", version="2.0.0")
 
-# CORS
-origins = [
-    "https://dev-match-tau.vercel.app",
-    "http://localhost:5173",
-]
+# CORS — configurable via CORS_ORIGINS env var (comma-separated)
+_default_origins = "https://dev-match-tau.vercel.app,http://localhost:5173,http://localhost:3000"
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,15 +80,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Users ─────────────────────────────────────────────────
+
+# ── Auth ──────────────────────────────────────────────────
+
+@app.post("/api/auth/register", response_model=TokenResponse)
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == user.email.strip().lower()).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    db_user = crud.create_user(db, user)
+    token = create_access_token(db_user.id)
+    return TokenResponse(
+        access_token=token,
+        user=UserResponse.model_validate(db_user),
+    )
+
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email.strip().lower()).first()
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not verify_password(req.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    token = create_access_token(user.id)
+    return TokenResponse(
+        access_token=token,
+        user=UserResponse.model_validate(user),
+    )
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+# ── Legacy register endpoint (backward compat) ───────────
 
 @app.post("/api/users", response_model=UserResponse)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == user.email).first()
+def register_user_legacy(user: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == user.email.strip().lower()).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db, user)
 
+
+# ── Users ─────────────────────────────────────────────────
 
 @app.get("/api/users", response_model=list[UserResponse])
 def list_users(
@@ -78,7 +141,7 @@ def list_users(
 
 @app.get("/api/users/by-email/{email}", response_model=UserResponse)
 def get_user_by_email(email: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email == email.strip().lower()).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -92,6 +155,22 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
+@app.put("/api/users/{user_id}", response_model=UserResponse)
+def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="You can only edit your own profile")
+    return crud.update_user(db, current_user, data)
+
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="You can only delete your own account")
+    db.delete(current_user)
+    db.commit()
+    return {"detail": "Account deleted"}
+
+
 @app.get("/api/users/{user_id}/projects", response_model=list[ProjectResponse])
 def get_user_projects(user_id: int, db: Session = Depends(get_db)):
     return db.query(Project).filter(Project.owner_id == user_id).order_by(Project.created_at.desc()).all()
@@ -99,7 +178,6 @@ def get_user_projects(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/users/{user_id}/received-applications")
 def get_received_applications(user_id: int, db: Session = Depends(get_db)):
-    """Applications TO this user's projects."""
     projects = db.query(Project).filter(Project.owner_id == user_id).all()
     project_ids = [p.id for p in projects]
     if not project_ids:
@@ -118,7 +196,6 @@ def get_received_applications(user_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/users/{user_id}/my-applications")
 def get_my_applications(user_id: int, db: Session = Depends(get_db)):
-    """Applications BY this user."""
     apps = db.query(Application).filter(Application.applicant_id == user_id).order_by(Application.created_at.desc()).all()
     return [
         {
@@ -130,13 +207,18 @@ def get_my_applications(user_id: int, db: Session = Depends(get_db)):
     ]
 
 
+# ── Compatibility ────────────────────────────────────────
+
+@app.get("/api/users/{user_id}/compatibility", response_model=CompatibilityResponse)
+def get_compatibility(user_id: int, with_user: int = Query(...), db: Session = Depends(get_db)):
+    return crud.get_compatibility(db, with_user, user_id)
+
+
 # ── Projects ─────────────────────────────────────────────
 
 @app.post("/api/projects", response_model=ProjectResponse)
-def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
-    owner = crud.get_user(db, project.owner_id)
-    if not owner:
-        raise HTTPException(status_code=404, detail="Owner not found")
+def create_project(project: ProjectCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    project.owner_id = current_user.id
     return crud.create_project(db, project)
 
 
@@ -158,6 +240,27 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     return project
 
 
+@app.put("/api/projects/{project_id}", response_model=ProjectResponse)
+def update_project(project_id: int, data: ProjectUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    project = crud.get_project(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own projects")
+    return crud.update_project(db, project, data)
+
+
+@app.delete("/api/projects/{project_id}")
+def delete_project(project_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    project = crud.get_project(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own projects")
+    crud.delete_project(db, project)
+    return {"detail": "Project deleted"}
+
+
 # ── Skills ────────────────────────────────────────────────
 
 @app.get("/api/skills")
@@ -177,17 +280,50 @@ def get_stats(db: Session = Depends(get_db)):
     }
 
 
+@app.get("/api/stats/skills")
+def get_skill_trends(db: Session = Depends(get_db)):
+    from sqlalchemy import func
+    rows = (
+        db.query(UserSkill.skill_name, func.count(UserSkill.id).label("count"))
+        .group_by(UserSkill.skill_name)
+        .order_by(func.count(UserSkill.id).desc())
+        .limit(15)
+        .all()
+    )
+    dept_rows = (
+        db.query(User.department, UserSkill.skill_name, func.count(UserSkill.id).label("count"))
+        .join(UserSkill, User.id == UserSkill.user_id)
+        .group_by(User.department, UserSkill.skill_name)
+        .order_by(func.count(UserSkill.id).desc())
+        .all()
+    )
+    by_dept = {}
+    for dept, skill, cnt in dept_rows:
+        by_dept.setdefault(dept, []).append({"skill": skill, "count": cnt})
+    return {
+        "top_skills": [{"skill": s, "count": c} for s, c in rows],
+        "by_department": by_dept,
+    }
+
+
 # ── Messages ───────────────────────────────────────
 
 @app.post("/api/messages", response_model=MessageResponse)
-def send_message(msg: MessageCreate, db: Session = Depends(get_db)):
-    if not crud.get_user(db, msg.sender_id):
-        raise HTTPException(status_code=404, detail="Sender not found")
+def send_message(msg: MessageCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    msg.sender_id = current_user.id
     if not crud.get_user(db, msg.receiver_id):
         raise HTTPException(status_code=404, detail="Receiver not found")
     if msg.sender_id == msg.receiver_id:
         raise HTTPException(status_code=400, detail="Cannot message yourself")
-    return crud.create_message(db, msg)
+    result = crud.create_message(db, msg)
+    # Create notification for receiver
+    sender = crud.get_user(db, msg.sender_id)
+    crud.create_notification(
+        db, type="message", from_user_id=msg.sender_id, to_user_id=msg.receiver_id,
+        content=f"{sender.name} sent you a message",
+        link=f"/profile/{msg.sender_id}",
+    )
+    return result
 
 
 @app.get("/api/messages/{user_id}", response_model=list[MessageResponse])
@@ -213,13 +349,21 @@ async def get_github_profile(username: str):
 # ── Applications ──────────────────────────────────────────
 
 @app.post("/api/projects/{project_id}/apply", response_model=ApplicationResponse)
-def apply_to_project(project_id: int, app: ApplicationCreate, db: Session = Depends(get_db)):
-    if not crud.get_project(db, project_id):
+def apply_to_project(project_id: int, app: ApplicationCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    project = crud.get_project(db, project_id)
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    if not crud.get_user(db, app.applicant_id):
-        raise HTTPException(status_code=404, detail="Applicant not found")
+    app.applicant_id = current_user.id
     app.project_id = project_id
-    return crud.create_application(db, app)
+    result = crud.create_application(db, app)
+    # Notify project owner
+    applicant = crud.get_user(db, app.applicant_id)
+    crud.create_notification(
+        db, type="application", from_user_id=app.applicant_id, to_user_id=project.owner_id,
+        content=f"{applicant.name} applied to '{project.title}'",
+        link=f"/dashboard",
+    )
+    return result
 
 
 @app.get("/api/projects/{project_id}/applications", response_model=list[ApplicationResponse])
@@ -233,21 +377,31 @@ def get_application_count(project_id: int, db: Session = Depends(get_db)):
 
 
 @app.patch("/api/applications/{app_id}")
-def update_application(app_id: int, status: str = Query(...), db: Session = Depends(get_db)):
+def update_application(app_id: int, status: str = Query(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if status not in ("accepted", "rejected"):
         raise HTTPException(status_code=400, detail="Status must be 'accepted' or 'rejected'")
-    result = crud.update_application_status(db, app_id, status)
-    if not result:
+    app = db.query(Application).filter(Application.id == app_id).first()
+    if not app:
         raise HTTPException(status_code=404, detail="Application not found")
+    project = crud.get_project(db, app.project_id)
+    if not project or project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only the project owner can accept/reject applications")
+    result = crud.update_application_status(db, app_id, status)
+    # Notify applicant
+    project = crud.get_project(db, app.project_id)
+    crud.create_notification(
+        db, type=status, from_user_id=project.owner_id, to_user_id=app.applicant_id,
+        content=f"Your application to '{project.title}' was {status}",
+        link=f"/dashboard",
+    )
     return {"status": "updated"}
 
 
 # ── Announcements ─────────────────────────────────────────
 
 @app.post("/api/announcements", response_model=AnnouncementResponse)
-def create_announcement(ann: AnnouncementCreate, db: Session = Depends(get_db)):
-    if not crud.get_user(db, ann.author_id):
-        raise HTTPException(status_code=404, detail="Author not found")
+def create_announcement(ann: AnnouncementCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    ann.author_id = current_user.id
     return crud.create_announcement(db, ann)
 
 
@@ -256,29 +410,18 @@ def list_announcements(tag: Optional[str] = Query(None), db: Session = Depends(g
     return crud.get_announcements(db, tag=tag)
 
 
-# ── GitHub ────────────────────────────────────────────────
-
-@app.get("/api/github/{username}")
-async def get_github_profile(username: str):
-    result = await fetch_github_profile(username)
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
-    return result
-
-
 # ── Devlogs ───────────────────────────────────────────────
 
 @app.post("/api/devlogs", response_model=DevlogResponse)
-def create_devlog(devlog: DevlogCreate, db: Session = Depends(get_db)):
-    if not crud.get_user(db, devlog.author_id):
-        raise HTTPException(status_code=404, detail="Author not found")
+def create_devlog(devlog: DevlogCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    devlog.author_id = current_user.id
     if devlog.project_id and not crud.get_project(db, devlog.project_id):
         raise HTTPException(status_code=404, detail="Project not found")
     return crud.create_devlog(db, devlog)
 
 
 @app.get("/api/devlogs")
-def list_devlogs(limit: int = Query(50), db: Session = Depends(get_db)):
+def list_devlogs(limit: int = Query(50, le=100), db: Session = Depends(get_db)):
     devlogs = crud.get_devlogs(db, limit=limit)
     results = []
     for d in devlogs:
@@ -297,14 +440,48 @@ def list_devlogs(limit: int = Query(50), db: Session = Depends(get_db)):
 # ── Reactions ────────────────────────────────────────────
 
 @app.post("/api/devlogs/{devlog_id}/react")
-def react_to_devlog(devlog_id: int, reaction: ReactionCreate, db: Session = Depends(get_db)):
+def react_to_devlog(devlog_id: int, reaction: ReactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    reaction.user_id = current_user.id
     devlog = db.query(Devlog).filter(Devlog.id == devlog_id).first()
     if not devlog:
         raise HTTPException(status_code=404, detail="Devlog not found")
-    if not crud.get_user(db, reaction.user_id):
-        raise HTTPException(status_code=404, detail="User not found")
     added = crud.toggle_reaction(db, devlog_id, reaction.user_id, reaction.emoji)
+    if added:
+        crud.create_notification(
+            db, type="reaction", from_user_id=reaction.user_id, to_user_id=devlog.author_id,
+            content=f"reacted {reaction.emoji} to your devlog",
+            link=f"/",
+        )
     return {"action": "added" if added else "removed"}
+
+
+# ── Notifications ────────────────────────────────────────
+
+@app.get("/api/notifications", response_model=list[NotificationResponse])
+def get_notifications(
+    unread_only: bool = Query(False),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return crud.get_notifications(db, current_user.id, unread_only=unread_only)
+
+
+@app.get("/api/notifications/count")
+def get_notification_count(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return {"count": crud.get_unread_count(db, current_user.id)}
+
+
+@app.patch("/api/notifications/{notif_id}/read")
+def mark_read(notif_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not crud.mark_notification_read(db, notif_id, current_user.id):
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"status": "read"}
+
+
+@app.post("/api/notifications/read-all")
+def mark_all_read(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    crud.mark_all_notifications_read(db, current_user.id)
+    return {"status": "all read"}
 
 
 # ── Leaderboard ─────────────────────────────────────────
@@ -312,3 +489,37 @@ def react_to_devlog(devlog_id: int, reaction: ReactionCreate, db: Session = Depe
 @app.get("/api/leaderboard", response_model=list[LeaderboardEntry])
 def get_leaderboard(db: Session = Depends(get_db)):
     return crud.get_leaderboard(db)
+
+
+# ── Endorsements ─────────────────────────────────────────
+
+@app.post("/api/users/{user_id}/endorse")
+def endorse_skill(
+    user_id: int,
+    data: EndorsementCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="Cannot endorse yourself")
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    endorsed = crud.toggle_endorsement(db, current_user.id, user_id, data.skill_name)
+    if endorsed:
+        crud.create_notification(
+            db, type="endorsement", from_user_id=current_user.id,
+            to_user_id=user_id, content=f"{current_user.name} endorsed your {data.skill_name} skill",
+            link=f"/profile/{user_id}",
+        )
+    return {"endorsed": endorsed}
+
+
+@app.get("/api/users/{user_id}/endorsements", response_model=list[EndorsementResponse])
+def get_endorsements(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_optional_user),
+):
+    requester_id = current_user.id if current_user else None
+    return crud.get_endorsements(db, user_id, requester_id)

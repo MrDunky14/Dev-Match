@@ -320,6 +320,68 @@
     gap: 32px;
 }
 
+/* ── Profile Completion ──────────────── */
+.profile-progress-card {
+    padding: 20px 24px;
+}
+
+.home-completion-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.home-completion-bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.home-completion-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--gradient-primary);
+    transition: width 0.5s ease;
+}
+
+/* ── Quick Actions ───────────────────── */
+.quick-actions-card {
+    padding: 20px 24px;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all var(--transition-fast);
+}
+
+.quick-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--accent-purple-light);
+    border-color: rgba(124, 58, 237, 0.25);
+}
+
 .stats-sidebar {
     padding: 24px;
     display: flex;
@@ -364,6 +426,52 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+/* ── Skill Trends ──────────────────────────────────────── */
+.skill-trends-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.trend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.trend-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.trend-label {
+    width: 90px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.trend-bar-bg {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(124, 58, 237, 0.1);
+    overflow: hidden;
+}
+.trend-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--gradient-primary);
+}
+.trend-count {
+    width: 28px;
+    text-align: right;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
 }
 
 /* ── Responsive ────────────────────────────────────────── */

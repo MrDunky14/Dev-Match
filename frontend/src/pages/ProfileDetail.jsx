@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send } from 'lucide-react';
-import { getUser, sendMessage, getConversation, fetchGitHubProfile } from '../api';
+import { Target, MessageCircle, Github, Mail, Calendar, FolderGit2, Star, Send, ThumbsUp } from 'lucide-react';
+import { getUser, sendMessage, getConversation, fetchGitHubProfile, getCompatibility, getEndorsements, endorseSkill } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from '../components/Toast';
 import SkillTag from '../components/SkillTag';
 import './ProfileDetail.css';
 
@@ -34,6 +35,7 @@ const AVAILABILITY_MAP = {
 export default function ProfileDetail() {
     const { id } = useParams();
     const { currentUser } = useIdentity();
+    const toast = useToast();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -46,6 +48,12 @@ export default function ProfileDetail() {
     const [messages, setMessages] = useState([]);
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+
+    // Compatibility state
+    const [compat, setCompat] = useState(null);
+
+    // Endorsements state
+    const [endorsements, setEndorsements] = useState([]);
 
     const isOwnProfile = currentUser && parseInt(id) === currentUser.id;
 
@@ -75,6 +83,24 @@ export default function ProfileDetail() {
         }
     }, [currentUser, id, sent, isOwnProfile]);
 
+    // Load compatibility score
+    useEffect(() => {
+        if (currentUser && id && !isOwnProfile) {
+            getCompatibility(id, currentUser.id)
+                .then((r) => setCompat(r.data))
+                .catch(() => setCompat(null));
+        }
+    }, [currentUser, id, isOwnProfile]);
+
+    // Load endorsements
+    useEffect(() => {
+        if (id) {
+            getEndorsements(id)
+                .then((r) => setEndorsements(r.data))
+                .catch(() => setEndorsements([]));
+        }
+    }, [id]);
+
     const handleSend = async (e) => {
         e.preventDefault();
         if (!currentUser || !msgText.trim()) return;
@@ -87,10 +113,34 @@ export default function ProfileDetail() {
             });
             setMsgText('');
             setSent((prev) => !prev);
+            toast.success('Message sent!');
         } catch (err) {
-            console.error('Failed to send message:', err);
+            toast.error('Failed to send message');
         } finally {
             setSending(false);
+        }
+    };
+
+    const handleEndorse = async (skillName) => {
+        if (!currentUser || isOwnProfile) return;
+        try {
+            const r = await endorseSkill(parseInt(id), skillName);
+            // Update endorsements locally
+            setEndorsements(prev => {
+                const existing = prev.find(e => e.skill_name === skillName);
+                if (existing) {
+                    if (r.data.endorsed) {
+                        return prev.map(e => e.skill_name === skillName ? { ...e, count: e.count + 1, endorsed_by_me: true } : e);
+                    } else {
+                        const updated = prev.map(e => e.skill_name === skillName ? { ...e, count: e.count - 1, endorsed_by_me: false } : e);
+                        return updated.filter(e => e.count > 0);
+                    }
+                }
+                return r.data.endorsed ? [...prev, { skill_name: skillName, count: 1, endorsed_by_me: true }] : prev;
+            });
+            toast.success(r.data.endorsed ? `Endorsed ${skillName}!` : `Removed endorsement`);
+        } catch {
+            toast.error('Failed to endorse');
         }
     };
 
@@ -151,7 +201,7 @@ export default function ProfileDetail() {
                     >
                         <motion.div variants={itemVariants} className="profile-hero">
                             <img
-                                src={user.avatar_url}
+                                src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
                                 alt={user.name}
                                 className="profile-avatar-lg"
                             />
@@ -172,6 +222,23 @@ export default function ProfileDetail() {
                             </motion.div>
                         )}
 
+                        {/* Compatibility Score */}
+                        {!isOwnProfile && compat && (
+                            <motion.div variants={itemVariants} className="compat-card">
+                                <div className="compat-score-ring">
+                                    <svg viewBox="0 0 36 36" className="compat-ring-svg">
+                                        <path className="compat-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path className="compat-ring-fill" strokeDasharray={`${compat.score}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    </svg>
+                                    <span className="compat-pct">{compat.score}%</span>
+                                </div>
+                                <div className="compat-details">
+                                    <strong>Compatibility Score</strong>
+                                    <p className="compat-reason">{compat.reason}</p>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {user.bio && (
                             <motion.div variants={itemVariants} className="profile-bio-section">
                                 <h3>About</h3>
@@ -182,9 +249,27 @@ export default function ProfileDetail() {
                         <motion.div variants={itemVariants} className="profile-skills-section">
                             <h3>Skills</h3>
                             <div className="profile-skills-grid">
-                                {user.skills.map((s) => (
-                                    <SkillTag key={s.id} skill={s.skill_name} />
-                                ))}
+                                {user.skills.map((s) => {
+                                    const endo = endorsements.find(e => e.skill_name === s.skill_name);
+                                    return (
+                                        <div key={s.id} className="skill-endorsable">
+                                            <SkillTag skill={s.skill_name} />
+                                            {!isOwnProfile && currentUser && (
+                                                <button
+                                                    className={`endorse-btn ${endo?.endorsed_by_me ? 'endorsed' : ''}`}
+                                                    onClick={() => handleEndorse(s.skill_name)}
+                                                    title={endo?.endorsed_by_me ? 'Remove endorsement' : 'Endorse this skill'}
+                                                >
+                                                    <ThumbsUp size={12} />
+                                                    {endo?.count > 0 && <span className="endorse-count">{endo.count}</span>}
+                                                </button>
+                                            )}
+                                            {isOwnProfile && endo?.count > 0 && (
+                                                <span className="endorse-badge">{endo.count} endorsement{endo.count !== 1 ? 's' : ''}</span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </motion.div>
 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Inbox, Send, Award, Activity, CheckCircle, XCircle } from 'lucide-react';
-import { getUserProjects, getReceivedApplications, getMyApplications, updateApplication, getLeaderboard } from '../api';
+import { Rocket, Inbox, Send, Award, Activity, CheckCircle, XCircle, Search, Code2, Trophy, Users } from 'lucide-react';
+import { getUserProjects, getReceivedApplications, getMyApplications, updateApplication, getLeaderboard, updateProject } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from '../components/Toast';
 import './Dashboard.css';
 
 const containerVariants = {
@@ -26,6 +27,7 @@ const itemVariants = {
 export default function Dashboard() {
     const navigate = useNavigate();
     const { currentUser } = useIdentity();
+    const toast = useToast();
     const [myProjects, setMyProjects] = useState([]);
     const [receivedApps, setReceivedApps] = useState([]);
     const [myApps, setMyApps] = useState([]);
@@ -35,10 +37,7 @@ export default function Dashboard() {
     const [activeTab, setActiveTab] = useState('projects');
 
     useEffect(() => {
-        if (!currentUser) {
-            navigate('/login');
-            return;
-        }
+        if (!currentUser) return;
         Promise.all([
             getUserProjects(currentUser.id).then(r => setMyProjects(r.data)).catch(() => { }),
             getReceivedApplications(currentUser.id).then(r => setReceivedApps(r.data)).catch(() => { }),
@@ -59,8 +58,21 @@ export default function Dashboard() {
             setReceivedApps(prev => prev.map(a =>
                 a.id === appId ? { ...a, status } : a
             ));
+            toast.success(`Application ${status}!`);
         } catch (err) {
-            console.error("Failed to update application", err);
+            toast.error('Failed to update application');
+        }
+    };
+
+    const handleStatusChange = async (projectId, newStatus) => {
+        try {
+            await updateProject(projectId, { status: newStatus });
+            setMyProjects(prev => prev.map(p =>
+                p.id === projectId ? { ...p, status: newStatus } : p
+            ));
+            toast.success(`Project moved to ${newStatus}!`);
+        } catch (err) {
+            toast.error('Failed to update status');
         }
     };
 
@@ -105,6 +117,12 @@ export default function Dashboard() {
                             <span className="stat-label">Rank</span>
                         </div>
                     </div>
+
+                    <div className="dash-quick-actions">
+                        <Link to="/discover" className="dash-quick-btn"><Search size={18} /> Find Teammates</Link>
+                        <Link to="/post-project" className="dash-quick-btn"><Code2 size={18} /> Post a Project</Link>
+                        <Link to="/projects" className="dash-quick-btn"><Trophy size={18} /> Browse Projects</Link>
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -126,6 +144,12 @@ export default function Dashboard() {
                         onClick={() => setActiveTab('sent')}
                     >
                         <Send size={16} /> My Applications ({myApps.length})
+                    </button>
+                    <button
+                        className={`dash-tab ${activeTab === 'teams' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('teams')}
+                    >
+                        <Users size={16} /> My Teams
                     </button>
                 </div>
 
@@ -162,6 +186,21 @@ export default function Dashboard() {
                                                         {p.status}
                                                     </span>
                                                     <span className="meta-text">{p.skills_needed}</span>
+                                                </div>
+                                                <div className="dash-status-actions">
+                                                    {p.status === 'open' && (
+                                                        <button className="btn btn-sm btn-ghost" onClick={() => handleStatusChange(p.id, 'in_progress')}>
+                                                            Mark In Progress
+                                                        </button>
+                                                    )}
+                                                    {p.status === 'in_progress' && (
+                                                        <button className="btn btn-sm btn-primary" onClick={() => handleStatusChange(p.id, 'showcase')}>
+                                                            🎉 Move to Showcase
+                                                        </button>
+                                                    )}
+                                                    {p.status === 'showcase' && (
+                                                        <span className="showcase-label">✨ Showcased</span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -238,6 +277,49 @@ export default function Dashboard() {
                                     ))}
                                 </>
                             )}
+
+                            {/* My Teams */}
+                            {activeTab === 'teams' && (() => {
+                                const acceptedApps = receivedApps.filter(a => a.status === 'accepted');
+                                const teamsByProject = {};
+                                acceptedApps.forEach(a => {
+                                    if (!teamsByProject[a.project.id]) {
+                                        teamsByProject[a.project.id] = { title: a.project.title, members: [] };
+                                    }
+                                    teamsByProject[a.project.id].members.push(a.applicant);
+                                });
+                                const projectIds = Object.keys(teamsByProject);
+                                return projectIds.length === 0 ? (
+                                    <motion.div variants={itemVariants} className="empty-state glass-card">
+                                        <Users size={40} className="empty-icon" style={{ color: 'var(--text-muted)' }} />
+                                        <h3>No team formed yet</h3>
+                                        <p>Accept applications to build your team!</p>
+                                    </motion.div>
+                                ) : projectIds.map(pid => (
+                                    <motion.div variants={itemVariants} key={pid} className="dash-item glass-card team-card">
+                                        <h3>{teamsByProject[pid].title}</h3>
+                                        <div className="team-members">
+                                            {/* Owner */}
+                                            <div className="team-member team-owner" onClick={() => navigate(`/profile/${currentUser.id}`)}>
+                                                <img src={currentUser.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`} alt={currentUser.name} className="team-avatar" />
+                                                <div>
+                                                    <span className="team-member-name">{currentUser.name}</span>
+                                                    <span className="team-role">Owner</span>
+                                                </div>
+                                            </div>
+                                            {teamsByProject[pid].members.map(m => (
+                                                <div key={m.id} className="team-member" onClick={() => navigate(`/profile/${m.id}`)}>
+                                                    <img src={m.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`} alt={m.name} className="team-avatar" />
+                                                    <div>
+                                                        <span className="team-member-name">{m.name}</span>
+                                                        <span className="team-role">Member</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                ));
+                            })()}
                         </motion.div>
                     </AnimatePresence>
                 )}

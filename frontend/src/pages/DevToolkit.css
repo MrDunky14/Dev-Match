@@ -141,12 +141,209 @@
     transform: translate(2px, -2px);
 }
 
+/* ── Toolkit Sections ──────────────────────────────────── */
+.toolkit-section {
+    margin-bottom: 48px;
+}
+.section-header {
+    margin-bottom: 20px;
+}
+.section-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* Roadmap Cards */
+.roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.roadmap-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.roadmap-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.roadmap-skill {
+    font-weight: 800;
+    font-size: 1.1rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.roadmap-path {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(124, 58, 237, 0.1);
+    color: var(--accent-purple-light);
+    font-weight: 600;
+}
+.roadmap-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.roadmap-next {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.roadmap-tag {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(6, 214, 160, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(6, 214, 160, 0.2);
+    font-weight: 500;
+}
+.roadmap-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--accent-purple-light);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 4px;
+    transition: color 0.2s;
+}
+.roadmap-link:hover {
+    color: var(--accent-cyan);
+}
+
+/* Trending Chips */
+.trending-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.trending-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.trending-rank {
+    color: var(--accent-cyan);
+    font-weight: 800;
+}
+.trending-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* Project Ideas */
+.ideas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+.idea-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.idea-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+.idea-top h3 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+}
+.idea-difficulty {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.idea-difficulty.easy {
+    background: rgba(6, 214, 160, 0.15);
+    color: var(--accent-cyan);
+}
+.idea-difficulty.medium {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+.idea-difficulty.hard {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+.idea-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+.idea-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.idea-skill {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(124, 58, 237, 0.08);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.idea-skill.matched {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--accent-purple-light);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+.idea-action {
+    font-size: 0.82rem;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: auto;
+    transition: color 0.2s;
+}
+.idea-action:hover {
+    color: var(--accent-purple-light);
+}
+
 @media (max-width: 600px) {
     .toolkit-title {
         font-size: 1.8rem;
     }
 
     .links-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .roadmap-grid, .ideas-grid {
         grid-template-columns: 1fr;
     }
 

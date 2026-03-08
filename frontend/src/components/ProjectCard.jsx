@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from './Toast';
 import { applyToProject, getApplicationCount } from '../api';
 import { Users, Send, CheckCircle2, XCircle, Rocket, User } from 'lucide-react';
 import SkillTag from './SkillTag';
@@ -10,6 +11,7 @@ import './ProjectCard.css';
 export default function ProjectCard({ project }) {
     const navigate = useNavigate();
     const { currentUser } = useIdentity();
+    const toast = useToast();
     const [showApply, setShowApply] = useState(false);
     const [applyMsg, setApplyMsg] = useState('');
     const [applying, setApplying] = useState(false);
@@ -41,8 +43,9 @@ export default function ProjectCard({ project }) {
             });
             setApplied(true);
             setShowApply(false);
+            toast.success('Application submitted!');
         } catch (err) {
-            console.error(err);
+            toast.error(err.response?.data?.detail || 'Failed to apply');
         } finally {
             setApplying(false);
         }
@@ -56,7 +59,7 @@ export default function ProjectCard({ project }) {
         >
             <div className="project-card-top">
                 <span className={`project-status ${project.status}`}>
-                    {project.status === 'open' ? <><CheckCircle2 size={14} /> Open</> : <><XCircle size={14} /> Closed</>}
+                    {project.status === 'open' ? <><CheckCircle2 size={14} /> Open</> : project.status === 'in_progress' ? <><CheckCircle2 size={14} /> In Progress</> : project.status === 'showcase' ? <><CheckCircle2 size={14} /> Showcase</> : <><XCircle size={14} /> Closed</>}
                 </span>
                 {appCount > 0 && (
                     <span className="app-count-badge">

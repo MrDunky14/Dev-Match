@@ -70,6 +70,22 @@
     width: fit-content;
 }
 
+.card-match-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    color: var(--accent-purple-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .avail-green {
     color: #10b981;
     background: rgba(16, 185, 129, 0.1);

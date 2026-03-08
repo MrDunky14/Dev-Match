@@ -37,12 +37,12 @@ const SKILL_COLORS = {
     'Networking': 'blue', 'Cryptography': 'purple',
 };
 
-export default function SkillTag({ skill, onClick, removable }) {
+export default function SkillTag({ skill, onClick, removable, highlight }) {
     const color = SKILL_COLORS[skill] || 'purple';
 
     return (
         <span
-            className={`skill-tag ${color}`}
+            className={`skill-tag ${color}${highlight ? ' highlight' : ''}`}
             onClick={onClick}
             style={onClick ? { cursor: 'pointer' } : {}}
         >

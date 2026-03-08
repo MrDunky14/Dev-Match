@@ -1,12 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Github, User } from 'lucide-react';
+import { Github, User, Zap } from 'lucide-react';
 import SkillTag from './SkillTag';
 import './ProfileCard.css';
 
-export default function ProfileCard({ user }) {
+export default function ProfileCard({ user, currentUser }) {
     const navigate = useNavigate();
     const avatarUrl = user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`;
+
+    // Quick client-side match score
+    const mySkills = currentUser?.skills?.map(s => s.skill_name) || [];
+    const theirSkills = user.skills?.map(s => s.skill_name) || [];
+    const shared = mySkills.filter(s => theirSkills.includes(s)).length;
+    const complementary = theirSkills.filter(s => !mySkills.includes(s)).length;
+    const matchScore = currentUser && currentUser.id !== user.id && (mySkills.length + theirSkills.length) > 0
+        ? Math.min(100, Math.round((shared * 15 + complementary * 10) / 1.0))
+        : null;
 
     return (
         <motion.div
@@ -28,6 +37,11 @@ export default function ProfileCard({ user }) {
                         </span>
                     )}
                 </div>
+                {matchScore !== null && matchScore > 0 && (
+                    <span className="card-match-badge" title="Compatibility score">
+                        <Zap size={12} /> {matchScore}%
+                    </span>
+                )}
             </div>
 
             <p className="profile-bio">{user.bio}</p>

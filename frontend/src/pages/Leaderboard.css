@@ -76,6 +76,21 @@
     color: var(--text-secondary);
 }
 
+.rank-title {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-top: 2px;
+}
+.rank-novice { background: rgba(100,116,139,0.15); color: #94a3b8; }
+.rank-builder { background: rgba(6,214,160,0.15); color: #06d6a0; }
+.rank-architect { background: rgba(124,58,237,0.15); color: #a78bfa; }
+.rank-titan { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(239,68,68,0.2)); color: #fbbf24; }
+
 .lb-skills {
     display: flex;
     align-items: center;

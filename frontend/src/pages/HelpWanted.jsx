@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, FileText, Search } from 'lucide-react';
+import { Rocket, FileText } from 'lucide-react';
 import { getProjects, getSkills } from '../api';
 import ProjectCard from '../components/ProjectCard';
 import './HelpWanted.css';
@@ -79,6 +79,8 @@ export default function HelpWanted() {
                     >
                         <option value="">All Status</option>
                         <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="showcase">Showcase</option>
                         <option value="closed">Closed</option>
                     </select>
                 </div>

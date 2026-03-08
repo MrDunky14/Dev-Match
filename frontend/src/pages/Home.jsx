@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Rocket, Code2, Users, FileEdit, Sparkles } from 'lucide-react';
-import { getStats, getUsers } from '../api';
+import { Search, Rocket, Code2, Users, FileEdit, Sparkles, Zap, MessageCircle, TrendingUp } from 'lucide-react';
+import { getStats, getUsers, getSkillTrends } from '../api';
+import { useIdentity } from '../hooks/useIdentity';
 import ProfileCard from '../components/ProfileCard';
 import DevlogFeed from '../components/DevlogFeed';
 import './Home.css';
@@ -28,12 +29,15 @@ const itemVariants = {
 };
 
 export default function Home() {
+    const { currentUser } = useIdentity();
     const [stats, setStats] = useState({ total_developers: 0, total_projects: 0, total_skills: 0, open_projects: 0 });
     const [featured, setFeatured] = useState([]);
+    const [skillTrends, setSkillTrends] = useState([]);
 
     useEffect(() => {
         getStats().then((r) => setStats(r.data)).catch(() => { });
         getUsers().then((r) => setFeatured(r.data.slice(0, 3))).catch(() => { });
+        getSkillTrends().then((r) => setSkillTrends(r.data.top_skills || [])).catch(() => { });
     }, []);
 
     return (
@@ -116,6 +120,58 @@ export default function Home() {
                     {/* Right Column: Stats & Featured */}
                     <div className="sidebar-column">
 
+                        {/* Profile Completion (logged-in users) */}
+                        {currentUser && (() => {
+                            const fields = [
+                                currentUser.name, currentUser.bio, currentUser.github_url,
+                                currentUser.github_username, currentUser.whatsapp_number,
+                                currentUser.skills?.length > 0,
+                            ];
+                            const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
+                            return pct < 100 ? (
+                                <motion.div
+                                    className="profile-progress-card glass-card"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                >
+                                    <h3 className="sidebar-title"><Zap size={18} className="title-icon" /> Your Profile</h3>
+                                    <div className="home-completion-row">
+                                        <span>{pct}% complete</span>
+                                        <Link to="/edit-profile" className="btn btn-ghost btn-sm">Complete</Link>
+                                    </div>
+                                    <div className="home-completion-bar">
+                                        <div className="home-completion-fill" style={{ width: `${pct}%` }} />
+                                    </div>
+                                </motion.div>
+                            ) : null;
+                        })()}
+
+                        {/* Quick Actions */}
+                        {currentUser && (
+                            <motion.div
+                                className="quick-actions-card glass-card"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <h3 className="sidebar-title"><Sparkles size={18} className="title-icon" /> Quick Actions</h3>
+                                <div className="quick-actions-grid">
+                                    <Link to="/discover" className="quick-action-btn">
+                                        <Search size={18} /> Find Teammates
+                                    </Link>
+                                    <Link to="/post-project" className="quick-action-btn">
+                                        <Rocket size={18} /> Post Project
+                                    </Link>
+                                    <Link to="/projects" className="quick-action-btn">
+                                        <Code2 size={18} /> Browse Projects
+                                    </Link>
+                                    <Link to="/notices" className="quick-action-btn">
+                                        <MessageCircle size={18} /> Notice Board
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {/* Stats */}
                         <motion.div
                             className="stats-sidebar glass-card"
@@ -138,6 +194,38 @@ export default function Home() {
                             </div>
                         </motion.div>
 
+                        {/* Skill Trends */}
+                        {skillTrends.length > 0 && (
+                            <motion.div
+                                className="skill-trends-card glass-card"
+                                initial={{ opacity: 0, x: 20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                            >
+                                <h3 className="sidebar-title"><TrendingUp size={18} className="title-icon" /> Trending Skills</h3>
+                                <div className="trend-list">
+                                    {skillTrends.slice(0, 8).map((item, i) => {
+                                        const maxCount = skillTrends[0]?.count || 1;
+                                        return (
+                                            <div key={item.skill} className="trend-row">
+                                                <span className="trend-label">{item.skill}</span>
+                                                <div className="trend-bar-bg">
+                                                    <motion.div
+                                                        className="trend-bar-fill"
+                                                        initial={{ width: 0 }}
+                                                        whileInView={{ width: `${(item.count / maxCount) * 100}%` }}
+                                                        viewport={{ once: true }}
+                                                        transition={{ duration: 0.6, delay: i * 0.05 }}
+                                                    />
+                                                </div>
+                                                <span className="trend-count">{item.count}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        )}
+
                         {/* Featured Devs */}
                         {featured.length > 0 && (
                             <motion.div
@@ -152,7 +240,7 @@ export default function Home() {
                                 </div>
                                 <div className="featured-list">
                                     {featured.map((user) => (
-                                        <ProfileCard key={user.id} user={user} />
+                                        <ProfileCard key={user.id} user={user} currentUser={currentUser} />
                                     ))}
                                 </div>
                             </motion.div>

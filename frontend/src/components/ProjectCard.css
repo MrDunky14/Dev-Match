@@ -23,6 +23,16 @@
     color: var(--accent-cyan);
 }
 
+.project-status.in_progress {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+}
+
+.project-status.showcase {
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--accent-purple-light);
+}
+
 .project-status.closed {
     background: rgba(239, 68, 68, 0.12);
     color: #ef4444;

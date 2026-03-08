@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAnnouncements, createAnnouncement } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from '../components/Toast';
 import './NoticeBoard.css';
 
 const TAG_LABELS = {
@@ -22,6 +23,7 @@ const TAG_COLORS = {
 
 export default function NoticeBoard() {
     const { currentUser } = useIdentity();
+    const toast = useToast();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTag, setActiveTag] = useState('all');
@@ -54,8 +56,9 @@ export default function NoticeBoard() {
             setForm({ title: '', content: '', tag: 'general' });
             setShowForm(false);
             fetchData(activeTag);
+            toast.success('Announcement posted!');
         } catch (err) {
-            console.error(err);
+            toast.error('Failed to post announcement');
         } finally {
             setPosting(false);
         }
@@ -150,7 +153,7 @@ export default function NoticeBoard() {
                                 <h3 className="notice-title">{ann.title}</h3>
                                 <p className="notice-content">{ann.content}</p>
                                 <div className="notice-author">
-                                    <img src={ann.author.avatar_url} alt="" className="notice-avatar" />
+                                    <img src={ann.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${ann.author.name}`} alt="" className="notice-avatar" />
                                     <span>{ann.author.name}</span>
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 """Seed the database with sample SLRTCE students and projects."""
 from database import engine, SessionLocal, Base
-from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction
+from models import User, UserSkill, Project, Message, Application, Announcement, Devlog, DevlogReaction, Notification
+from auth import hash_password
 from datetime import datetime, timezone
 
 
@@ -245,6 +246,7 @@ SAMPLE_DEVLOGS = [
 def seed():
     db = SessionLocal()
     try:
+        db.query(Notification).delete()
         db.query(Application).delete()
         db.query(Announcement).delete()
         db.query(DevlogReaction).delete()
@@ -255,9 +257,12 @@ def seed():
         db.query(User).delete()
         db.commit()
 
+        # Hash a default password for all seeded users
+        default_hash = hash_password("password123")
+
         for user_data in SAMPLE_USERS:
             skills = user_data.pop("skills")
-            user = User(**user_data)
+            user = User(**user_data, password_hash=default_hash)
             db.add(user)
             db.commit()
             db.refresh(user)

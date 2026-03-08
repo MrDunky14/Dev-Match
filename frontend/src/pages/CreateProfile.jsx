@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUser, fetchGitHubProfile } from '../api';
+import { registerUser, fetchGitHubProfile } from '../api';
 import { useIdentity } from '../hooks/useIdentity';
+import { useToast } from '../components/Toast';
 import SkillTag from '../components/SkillTag';
+import { Eye, EyeOff } from 'lucide-react';
 import './CreateProfile.css';
 
 const POPULAR_SKILLS = [
@@ -24,9 +26,11 @@ const AVAILABILITY_OPTIONS = [
 export default function CreateProfile() {
     const navigate = useNavigate();
     const { setCurrentUser } = useIdentity();
+    const toast = useToast();
     const [form, setForm] = useState({
         name: '',
         email: '',
+        password: '',
         bio: '',
         semester: '',
         department: '',
@@ -36,6 +40,7 @@ export default function CreateProfile() {
         availability: 'Looking for team',
         skills: [],
     });
+    const [showPassword, setShowPassword] = useState(false);
     const [customSkill, setCustomSkill] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -100,8 +105,12 @@ export default function CreateProfile() {
         e.preventDefault();
         setError('');
 
-        if (!form.name || !form.email || !form.semester || !form.department) {
+        if (!form.name || !form.email || !form.password || !form.semester || !form.department) {
             setError('Please fill in all required fields');
+            return;
+        }
+        if (form.password.length < 6) {
+            setError('Password must be at least 6 characters');
             return;
         }
         if (form.skills.length === 0) {
@@ -111,12 +120,13 @@ export default function CreateProfile() {
 
         setSubmitting(true);
         try {
-            const res = await createUser({
+            const res = await registerUser({
                 ...form,
                 semester: parseInt(form.semester),
                 avatar_url: form.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${form.name}`,
             });
-            setCurrentUser(res.data); // Auto-login
+            setCurrentUser(res.data.user, res.data.access_token);
+            toast.success('Profile created successfully!');
             setSuccess(true);
             setTimeout(() => navigate('/discover'), 2000);
         } catch (err) {
@@ -205,6 +215,29 @@ export default function CreateProfile() {
                                 value={form.email}
                                 onChange={handleChange}
                             />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Password *</label>
+                        <div className="password-input-wrapper">
+                            <input
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                className="form-input"
+                                placeholder="At least 6 characters"
+                                value={form.password}
+                                onChange={handleChange}
+                                minLength={6}
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
